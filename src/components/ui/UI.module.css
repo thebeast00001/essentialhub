@@ -1,0 +1,118 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-family: var(--font-main);
+}
+
+.primary {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.primary:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+
+.secondary {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+}
+
+.secondary:hover {
+    background: rgba(45, 55, 72, 0.8);
+}
+
+.ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-critical);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.md {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+}
+
+.lg {
+    padding: 14px 28px;
+    font-size: 1.05rem;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.card {
+    padding: 24px;
+}
+
+.hoverable {
+    transition: all 0.3s ease;
+}
+
+.hoverable:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-low {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--status-low);
+}
+
+.badge-medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--status-medium);
+}
+
+.badge-high {
+    background: rgba(249, 115, 22, 0.1);
+    color: var(--status-high);
+}
+
+.badge-critical {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-critical);
+}
+
+.badge-neutral {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-secondary);
+}

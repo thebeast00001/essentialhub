@@ -1,0 +1,38 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-deep);
+}
+
+.main {
+    flex: 1;
+    margin-left: 260px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+}
+
+.content {
+    flex: 1;
+    padding: 40px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .main {
+        margin-left: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        margin-left: 0;
+    }
+
+    .content {
+        padding: 24px 16px;
+    }
+}

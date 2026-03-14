@@ -1,0 +1,380 @@
+.container {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    height: 100%;
+}
+
+.mainLayout {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* ─── Calendar Panel ────────────────────────────────── */
+.calendarPanel {
+    background: rgba(30, 32, 35, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 600px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.calHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.calHeaderLeft h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.calHeaderLeft h2 span {
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 400;
+}
+
+.navBtns {
+    display: flex;
+    gap: 8px;
+}
+
+.iconBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.iconBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.calHeaderRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.monthlyTasksLabel {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.monthlyTasksValue {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.calendarGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+}
+
+.dayHeader {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.dayCell {
+    aspect-ratio: 1;
+    background: transparent;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.dayCell.currentMonth {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.dayCell:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.selectedDay {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dayNumber {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.otherMonth .dayNumber {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.taskDots {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    bottom: 8px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+
+/* ─── Side Panel ────────────────────────────────────── */
+.sidePanel {
+    width: 300px;
+    background: rgba(30, 32, 35, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.sidePanel h3 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.addMiniBtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addMiniBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.activityStats {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mainPercentage {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.trend {
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* Mock Bar Chart initially, now replaced partially by timeline */
+.barChart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+}
+
+.barCol {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.barCol span {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.bar {
+    width: 100%;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.bar.highlight {
+    background: linear-gradient(180deg, #34d399 0%, #3b82f6 100%);
+    box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+}
+
+.timelineList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.timelineItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.timelineTime {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    min-width: 60px;
+    padding-top: 2px;
+}
+
+.timelineContent {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    flex: 1;
+}
+
+.timelineTitle {
+    font-size: 0.8rem;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.timelineType {
+    font-size: 0.65rem;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.timelineType.task_created { color: #3b82f6; }
+.timelineType.task_deleted { color: #ef4444; }
+
+.remindersList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reminderItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reminderItem:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.reminderLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.remTime {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.remTime span {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+}
+
+.remTitle {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.remStatus {
+    font-size: 0.65rem;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.remStatus::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #10b981;
+}
+
+.noReminders {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    padding: 20px 0;
+}

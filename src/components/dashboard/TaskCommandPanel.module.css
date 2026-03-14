@@ -1,0 +1,248 @@
+.panelContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-card);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+}
+
+.searchBar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+}
+
+.searchBar input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    width: 100%;
+    outline: none;
+}
+
+.filters {
+    display: flex;
+    gap: 4px;
+}
+
+.filterBtn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.filterBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+}
+
+.activeFilter {
+    background: var(--accent-soft);
+    color: var(--accent-primary);
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sectionHeader h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.count {
+    font-size: 0.75rem;
+    background: var(--accent-soft);
+    color: var(--accent-primary);
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 700;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.taskOuter {
+    width: 100%;
+}
+
+.taskCard {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    transition: var(--transition-smooth);
+}
+
+.taskCard:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+}
+
+.dragHandle {
+    cursor: grab;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.checkBtn {
+    background: transparent;
+    flex-shrink: 0;
+}
+
+.checkOuter {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-strong);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-bounce);
+    color: white;
+}
+
+.checkActive {
+    background: var(--status-success);
+    border-color: var(--status-success);
+    transform: scale(1.1);
+}
+
+.taskInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.taskTitle {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.taskMeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.deadline {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.completed .taskTitle {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+
+.taskCard:hover .actions {
+    opacity: 1;
+}
+
+.deleteBtn {
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    color: var(--status-danger);
+    transform: scale(1.1);
+}
+
+.inlineInput {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--accent-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    padding: 0;
+}
+
+.missedTask {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.missedBadge {
+    background: var(--status-danger);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.minimal {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+}
+
+.completedIcon {
+    color: var(--status-success);
+    opacity: 0.7;
+}
+
+.empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    border: 1px dashed var(--border-subtle);
+    border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+    .actions {
+        opacity: 1;
+    }
+}
