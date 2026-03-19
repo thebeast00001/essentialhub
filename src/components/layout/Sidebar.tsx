@@ -3,117 +3,178 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-import { UserButton, useUser, SignInButton } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
-import { dark } from '@clerk/themes';
+import { useAuth } from '@/hooks/useAuth';
+
 import {
     LayoutDashboard,
+
     CheckSquare,
     Calendar,
-    Settings,
+    Flame,
     BarChart3,
     Timer,
-    Flame,
-    Search,
-    ChevronDown,
-    MoreHorizontal,
     Headphones,
+    Users,
+    Settings,
+    LogOut,
     LogIn,
-    Users
+    Zap,
+    MoreHorizontal,
+    UserPlus,
+    Palette
 } from 'lucide-react';
+import { useTaskStore, getLocalDateStr } from '@/store/useTaskStore';
+import { MomentumBar } from './MomentumBar';
+
 import styles from './Sidebar.module.css';
 import { clsx } from 'clsx';
+import { AICommandCenter } from '@/components/dashboard/AICommandCenter';
 
-const navItems = [
+
+const generalItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
     { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
     { icon: Calendar, label: 'Schedule', href: '/schedule' },
-    { icon: Flame, label: 'Habits', href: '/habits' },
-    { icon: BarChart3, label: 'Insights', href: '/insights' },
-    { icon: Timer, label: 'Timer', href: '/focus' },
-    { icon: Headphones, label: 'Study Room', href: '/study' },
+    { icon: Users, label: 'Social Circle', href: '/friends' },
 ];
+
+const toolItems = [
+    { icon: Flame, label: 'Habits', href: '/habits' },
+    { icon: BarChart3, label: 'Analytics', href: '/insights' },
+    { icon: Timer, label: 'Timer', href: '/focus' },
+];
+
+
 
 export const Sidebar = () => {
     const pathname = usePathname();
-    const { user, isLoaded, isSignedIn } = useUser();
-    const { theme } = useTheme();
+    const { user, signOut } = useAuth();
+    const { theme, setTheme } = useTheme();
 
+    const [mounted, setMounted] = React.useState(false);
 
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const { tasks, habits, focusTimeToday } = useTaskStore();
+
+    const stats = React.useMemo(() => {
+        const today = getLocalDateStr();
+        const doneTasks = tasks.filter(t => t.completed && t.completedAt && getLocalDateStr(t.completedAt) === today).length;
+        const doneHabits = habits.filter(h => h.completedToday).length;
+        return { doneTasks, doneHabits };
+    }, [tasks, habits]);
 
     return (
         <aside className={styles.sidebar}>
-            <div className={styles.workspaceSelector}>
-                <div className={styles.workspaceIcon}>E</div>
-                <span className={styles.workspaceName}>ESSENTIAL</span>
-                <ChevronDown size={14} className={styles.chevron} />
+            <div className={styles.branding}>
+                <div className={styles.logoArea}>
+                    <div className={styles.logoIcon}>
+                        <Zap size={20} fill="var(--accent-primary)" />
+                    </div>
+                    <span className={styles.logoText}>ESSENTIAL</span>
+                </div>
             </div>
 
-            <div className={styles.searchContainer}>
-                <Search size={16} className={styles.searchIcon} />
-                <input type="text" placeholder="Search Command Center..." className={styles.searchInput} />
+            {mounted && (
+                <div className={styles.momentumBar}>
+                    <MomentumBar 
+                        tasksCompleted={stats.doneTasks}
+                        habitsCompleted={stats.doneHabits}
+                        focusMinutes={focusTimeToday}
+                    />
+                </div>
+            )}
+
+            <div className={styles.scrollArea}>
+                <div className={styles.navGroup}>
+                    <span className={styles.groupLabel}>General</span>
+                    <nav className={styles.nav}>
+                        {generalItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={clsx(styles.navItem, pathname === item.href && styles.active)}
+                            >
+                                <item.icon size={18} />
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+
+                <div className={styles.navGroup}>
+                    <span className={styles.groupLabel}>Tools</span>
+                    <nav className={styles.nav}>
+                        {toolItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={clsx(styles.navItem, pathname === item.href && styles.active)}
+                            >
+                                <item.icon size={18} />
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
             </div>
 
-            <nav className={styles.nav}>
-                {navItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href;
-
-                    return (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className={clsx(styles.navItem, isActive && styles.active)}
-                        >
-                            <Icon size={18} />
-                            <span>{item.label}</span>
-                            {isActive && <div className={styles.activeIndicator} />}
-                        </Link>
-                    );
-                })}
-            </nav>
 
             <div className={styles.footer}>
-                <Link href="/settings" className={styles.navItem}>
+                <button 
+                    onClick={() => {
+                        const next = theme === 'dark' ? 'oceanic' : theme === 'oceanic' ? 'light' : 'dark';
+                        setTheme(next);
+                    }}
+                    className={styles.themeToggleBtn}
+                    suppressHydrationWarning={true}
+                >
+
+                    <Palette size={18} />
+                    <span>Theme: {mounted && theme ? (theme.charAt(0).toUpperCase() + theme.slice(1)) : '...'}</span>
+                </button>
+
+
+                <Link href="/settings" className={clsx(styles.navItem, pathname === '/settings' && styles.active)}>
                     <Settings size={18} />
                     <span>Settings</span>
                 </Link>
 
-                <Link 
-                    href="/friends"
-                    className={clsx(styles.navItem, pathname === '/friends' && styles.active)}
-                >
-                    <Users size={18} />
-                    <span>Friends</span>
-                </Link>
-
-                {isLoaded && isSignedIn && (
-                    <div className={styles.userProfile}>
-                        <UserButton 
-                            appearance={{
-                                baseTheme: dark
-                            }}
-                        />
-                        <div className={styles.userInfo}>
-                            <span className={styles.userName}>@{user?.username || user?.firstName || 'Anonymous'}</span>
-                        </div>
-                    </div>
-                )}
-                
-                {isLoaded && !isSignedIn && (
-                    <div className={styles.userProfile} style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', background: 'rgba(99, 102, 241, 0.1)' }}>
-                        <SignInButton mode="modal">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontWeight: 600, width: '100%', justifyContent: 'center' }}>
-                                <LogIn size={16} />
-                                Sign In / Register
+                {user ? (
+                    <div className={styles.bottomProfile}>
+                        <Link href={`/profile/${user.id}`} className={styles.profileInfo} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div className={styles.avatarWrapper}>
+                                <img src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email || 'U'}&background=1A1A1A&color=fff`} className={styles.avatarBox} alt="" />
+                                <div className={styles.statusIndicator} />
                             </div>
-                        </SignInButton>
+                            <div className={styles.userMeta}>
+                                <span className={styles.userName}>u/{user.user_metadata?.username || 'agent'}</span>
+                                <span className={styles.userSubtitle}>{user.user_metadata?.full_name}</span>
+                            </div>
+                        </Link>
+                        <button className={styles.logoutMini} onClick={() => signOut()} title="Log Out">
+                            <LogOut size={16} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className={styles.authActions}>
+                        <Link href="/sign-in" className={styles.authBtn}>
+                            <LogIn size={16} />
+                            <span>Sign In</span>
+                        </Link>
+                        <Link href="/sign-up" className={clsx(styles.authBtn, styles.primaryAuth)}>
+                            <UserPlus size={16} />
+                            <span>Sign Up</span>
+                        </Link>
                     </div>
                 )}
+
+
+
             </div>
-
-
         </aside>
     );
 };

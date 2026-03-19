@@ -11,84 +11,129 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Standard Cron Handler
+// Standard Cron Handler with Batching Support
 export async function GET(req: NextRequest) {
     try {
-        // Optional: Verification of Cron Secret for security
-        // const authHeader = req.headers.get('authorization');
-        // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        //     return new Response('Unauthorized', { status: 401 });
-        // }
+        const { searchParams } = new URL(req.url);
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const offset = parseInt(searchParams.get('offset') || '0');
 
-        // 1. Fetch all users who have registered profiles
+        // 1. Fetch profiles for this batch
         const { data: profiles, error: profileError } = await supabase
             .from('profiles')
-            .select('id, email, full_name, username');
+            .select('id, email, full_name, username')
+            .range(offset, offset + limit - 1);
 
         if (profileError || !profiles) {
             return NextResponse.json({ error: 'Failed to fetch profiles' }, { status: 500 });
         }
 
-        const stats = { sent: 0, failed: 0 };
+        if (profiles.length === 0) {
+            return NextResponse.json({ success: true, message: 'No profiles to process in this range.' });
+        }
 
-        // 2. Loop through users and send reports
+        const stats = { sent: 0, failed: 0 };
+        const userIds = profiles.map(p => p.id);
+
+        // 2. Fetch all tasks and sessions for the entire batch in one go (Optimized)
+        const now = new Date();
+        const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const { data: allTasks } = await supabase
+            .from('tasks')
+            .select('*')
+            .in('user_id', userIds);
+
+        const { data: allSessions } = await supabase
+            .from('focus_sessions')
+            .select('*')
+            .in('user_id', userIds);
+
+        // 3. Group data by user_id for O(1) lookup during processing
+        const tasksByUser = (allTasks || []).reduce((acc: any, t: any) => {
+            if (!acc[t.user_id]) acc[t.user_id] = [];
+            acc[t.user_id].push(t);
+            return acc;
+        }, {});
+
+        const sessionsByUser = (allSessions || []).reduce((acc: any, s: any) => {
+            if (!acc[s.user_id]) acc[s.user_id] = [];
+            acc[s.user_id].push(s);
+            return acc;
+        }, {});
+
+        // 4. Process the batch
         for (const profile of profiles) {
             try {
-                const now = new Date();
-                const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const userTasks = tasksByUser[profile.id] || [];
+                const userSessions = sessionsByUser[profile.id] || [];
 
-                // Fetch user specific data
-                const { data: tasks } = await supabase
-                    .from('tasks')
-                    .select('*')
-                    .eq('user_id', profile.id)
-                    .gte('completed_at', lastWeek.toISOString());
+                const currentTasks = userTasks.filter((t: any) => t.completed && t.completed_at && new Date(t.completed_at) >= weekStart);
+                const currentSessions = userSessions.filter((s: any) => s.completed_at && new Date(s.completed_at) >= weekStart);
+                
+                const focusMins = currentSessions.reduce((acc: number, s: any) => acc + (s.duration_mins || 0), 0);
+                const completedCount = currentTasks.length;
 
-                const { data: sessions } = await supabase
-                    .from('focus_sessions')
-                    .select('*')
-                    .eq('user_id', profile.id)
-                    .gte('completed_at', lastWeek.toISOString());
+                // Accurate Missed Tasks
+                const missedTasks = userTasks.filter((t: any) => {
+                    if (!t.deadline || t.completed) return false;
+                    const d = new Date(t.deadline);
+                    return d >= weekStart && d <= now;
+                }).length;
 
-                const completedCount = tasks?.length || 0;
-                const focusMins = sessions?.reduce((acc: number, s: any) => acc + s.duration_mins, 0) || 0;
+                const productivityScore = Math.min(100, Math.round((completedCount / 5 * 50) + (focusMins / 120 * 50)));
+
+                // Focus Streak
+                const uniqueDays = Array.from(new Set(
+                    (userSessions || []).map((s: any) => s.completed_at?.split('T')[0])
+                )).filter(Boolean).sort().reverse();
+                
+                let streak = 0;
+                if (uniqueDays.length > 0) {
+                    let curr = new Date(uniqueDays[0] as string);
+                    for (const d of uniqueDays) {
+                        if (d === (curr.toISOString().split('T')[0])) {
+                            streak++;
+                            curr.setDate(curr.getDate() - 1);
+                        } else break;
+                    }
+                }
 
                 const insightData = {
                     userEmail: profile.email,
                     userName: profile.full_name || profile.username || 'Zenith User',
-                    weekRange: `${lastWeek.toLocaleDateString()} - ${now.toLocaleDateString()}`,
+                    weekRange: `${weekStart.toLocaleDateString()} - ${now.toLocaleDateString()}`,
                     metrics: {
                         focusMinutes: focusMins,
                         tasksCompleted: completedCount,
-                        tasksMissed: 0,
-                        productivityScore: Math.min(100, Math.round((completedCount * 10) + (focusMins / 30))),
-                        improvement: 15,
+                        tasksMissed: missedTasks,
+                        productivityScore: productivityScore,
+                        improvement: streak,
                     },
                     insights: [
-                        `You completed ${completedCount} major tasks this week.`,
-                        `Total deep focus time recorded: ${Math.round(focusMins / 60)} hours.`,
-                        `Most active morning flow detected.`
+                        `You crushed ${completedCount} major objectives this week.`,
+                        `Deep work intensity: ${Math.round(focusMins / 60)} hours of flow state.`,
+                        streak > 2 ? `Impressive ${streak}-day focus streak maintained!` : 'Consistency is building. You have the momentum.'
                     ],
                     recommendations: [
-                        "Prioritize high-energy tasks during your peak morning hours.",
-                        "Try adding a short reflection period on Friday afternoons.",
-                        "Maintain consistent sleep patterns to improve cognitive focus."
+                        "Review your peak productivity periods in the Zenith Dashboard.",
+                        "Clear your backlog items early in the week for maximum momentum.",
+                        "Your performance score shows you're ready for more complex challenges."
                     ]
                 };
 
                 // Generate PDF
-                // @ts-ignore
                 const pdfBuffer = await renderToBuffer(<WeeklyInsightsPDF data={insightData} />);
 
                 // Send Email
                 await resend.emails.send({
                     from: 'Zenith AI <onboarding@resend.dev>',
                     to: [profile.email],
-                    subject: `Your Weekly Productivity Insight · ${now.toLocaleDateString()}`,
-                    text: `Hi ${insightData.userName}, your weekly report is attached.`,
+                    subject: `Weekly Performance Analysis · ${now.toLocaleDateString()}`,
+                    text: `Hi ${insightData.userName}, your performance report is ready. You hit a ${streak}-day streak!`,
                     attachments: [
                         {
-                            filename: `Zenith_Insights_${now.toISOString().split('T')[0]}.pdf`,
+                            filename: `Zenith_Weekly_${now.toISOString().split('T')[0]}.pdf`,
                             content: pdfBuffer,
                         },
                     ],
@@ -96,14 +141,14 @@ export async function GET(req: NextRequest) {
 
                 stats.sent++;
             } catch (err) {
-                console.error(`Failed to send to ${profile.email}:`, err);
+                console.error(`Failed to send report to ${profile.email}:`, err);
                 stats.failed++;
             }
         }
 
         return NextResponse.json({ 
             success: true, 
-            message: `Processed ${profiles.length} users.`,
+            message: `Processed ${profiles.length} users (Offset: ${offset}).`,
             stats 
         });
 
@@ -112,9 +157,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// Keep POST for manual triggers/backwards compatibility if needed
+// Keep POST for manual triggers/backwards compatibility
 export async function POST(req: NextRequest) {
-    // Current manual single-user trigger logic can still be here if needed 
-    // for testing but GET is preferred for automated crons
     return GET(req);
 }

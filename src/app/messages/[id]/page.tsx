@@ -9,7 +9,8 @@ import {
     CheckCheck, Headphones, ShieldCheck, ExternalLink
 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
+
 import styles from './Chat.module.css';
 import { clsx } from 'clsx';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,8 @@ import { supabase } from '@/lib/supabase';
 export default function FriendChatPage() {
     const params = useParams();
     const router = useRouter();
-    const { user } = useUser();
+    const { user } = useAuth();
+
     const friendId = params.id as string;
     
     const [friend, setFriend] = useState<any>(null);
@@ -91,8 +93,6 @@ export default function FriendChatPage() {
 
     return (
         <div className={styles.container}>
-            <div className={clsx(styles.orb, styles.orb1)} />
-            <div className={clsx(styles.orb, styles.orb2)} />
             {/* Header */}
             <header className={styles.header}>
                 <div className={styles.headerLeft}>

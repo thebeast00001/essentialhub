@@ -6,6 +6,9 @@
     min-width: 200px;
     position: relative;
     overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
 }
 
 .statCard::before {
@@ -14,9 +17,9 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent-primary), transparent);
-    opacity: 0.3;
+    height: 3px;
+    background: var(--accent-primary);
+    opacity: 0.5;
 }
 
 .statHeader {
@@ -29,16 +32,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.03);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--bg-hover);
+    color: var(--accent-primary);
 }
 
 .trend {
     font-size: 0.75rem;
-    font-weight: 600;
-    padding: 2px 8px;
+    font-weight: 700;
+    padding: 4px 10px;
     border-radius: 99px;
 }
 
@@ -53,17 +57,20 @@
 }
 
 .statValue {
-    font-size: 2.25rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 800;
     font-family: var(--font-display);
     color: var(--text-primary);
-    line-height: 1.2;
+    line-height: 1;
+    letter-spacing: -0.02em;
 }
 
 .statLabel {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .section {
@@ -78,7 +85,8 @@
 }
 
 .sectionHeader h2 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 
 .sectionBody {

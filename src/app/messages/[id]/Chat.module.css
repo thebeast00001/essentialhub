@@ -8,36 +8,6 @@
     overflow: hidden;
 }
 
-.orb {
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.1;
-    filter: blur(100px);
-}
-
-.orb1 {
-    background: var(--accent-primary);
-    top: -100px;
-    right: -100px;
-    animation: pulse 10s infinite alternate ease-in-out;
-}
-
-.orb2 {
-    background: #ec4899;
-    bottom: -100px;
-    left: -100px;
-    animation: pulse 12s infinite alternate-reverse ease-in-out;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1) translate(0, 0); opacity: 0.05; }
-    100% { transform: scale(1.2) translate(50px, 50px); opacity: 0.15; }
-}
-
 /* Header */
 .header {
     height: 72px;

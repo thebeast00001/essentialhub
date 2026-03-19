@@ -3,163 +3,682 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
 }
 
-.header {
+/* ─── Top Bar ──────────────────────────────────────── */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+}
+
+.searchWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-card);
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 1px solid var(--border-subtle);
+  max-width: 800px;
+}
+
+.searchIcon {
+  color: var(--text-muted);
+}
+
+.topSearch {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.searchCategories {
+  display: flex;
+  gap: 8px;
+}
+
+.categoryTag {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.activeTag {
+  background: var(--text-primary);
+  color: var(--bg-deep);
+  border-style: solid;
+}
+
+.topActions {
+  display: flex;
+  gap: 12px;
+}
+
+.notificationBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.notificationBtn:hover {
+  background: var(--bg-hover);
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
+
+.notificationBtn:hover .notifDot {
+    border-color: var(--bg-hover);
+}
+
+.notifDot {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    background: #ff4757;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    animation: ripple 2s infinite;
+    transition: var(--transition-smooth);
+}
+
+@keyframes ripple {
+    0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(255, 71, 87, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+}
+
+.roundActionBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.roundActionBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* ─── Dashboard Layout ────────────────────────────── */
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 40px;
+  align-items: start;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ─── Hero Section ─────────────────────────────────── */
+.heroSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.heroActions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.heroMain {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.greetingTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+
+.dailyMantra {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-radius: 99px;
+    border: 1px solid var(--border-glass);
+    width: fit-content;
+    animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mantraIcon {
+    color: var(--accent-primary);
+}
+
+.dailyMantra span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.quickFocusBtn {
+    height: 54px !important;
+    padding: 0 32px !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-lg);
+}
+
+/* ─── Stat Cards Grid ────────────────────────────── */
+.statCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.dashboardStatCard {
+  padding: 24px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  border: 1px solid var(--border-glass);
+  transition: var(--transition-smooth);
+}
+
+.dashboardStatCard:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.cardLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.cardLargeValue {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cardSmallInfo {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* Card Colors - Using Pastel Vibes */
+.yellowCard { background: #fee896; color: #422006; }
+.pinkCard { background: #fbcfe8; color: #500732; }
+.greenCard { background: #bbf7d0; color: #064e3b; }
+.blueCard { background: #bfdbfe; color: #1e3a8a; }
+
+/* Themes specific overrides for cards if needed */
+.dark .dashboardStatCard { filter: brightness(0.9) contrast(1.1); }
+.oceanic .dashboardStatCard { opacity: 0.95; }
+
+.cardMiniChart {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+}
+
+.chartBar {
+  flex: 1;
+  background: currentColor;
+  opacity: 0.3;
+  border-radius: 4px 4px 0 0;
+}
+
+.chartLine {
+  margin-top: auto;
+  height: 40px;
+}
+
+.sparkLine {
+  width: 100%;
+  height: 100%;
+  opacity: 0.4;
+}
+
+.cardShapeGfx {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 80px;
+  height: 80px;
+  background: currentColor;
+  opacity: 0.1;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.cardStarGfx {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 80px;
+  height: 80px;
+  background: currentColor;
+  opacity: 0.1;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+/* ─── Split Section ────────────────────────────── */
+.splitSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.sectionHeading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
 
-.headerLeft h1 {
-  font-size: 2.25rem;
-  margin-bottom: 4px;
+.sectionHeading h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.date {
+.showAllLink {
+  background: transparent;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
   color: var(--text-muted);
-  font-size: 1rem;
-  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-.headerRight {
+.ritualList {
   display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.headerActions {
-  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.iconBtn {
-  width: 40px;
-  height: 40px;
+.compactRitualItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+  gap: 16px;
+  padding: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-radius: 16px;
   transition: var(--transition-smooth);
 }
 
-.iconBtn:hover {
+.compactRitualItem:hover {
   background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-strong);
+  transform: translateX(5px);
 }
 
-.statGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
+.completedItem {
+    opacity: 0.6;
 }
 
-.mainGrid {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 32px;
-  align-items: start;
+.completedItem .ritualItemTitle {
+    text-decoration: line-through;
+    color: var(--text-muted);
 }
 
-.leftCol {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+.emptyStateDashboard {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px dashed var(--border-strong);
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
-.rightCol {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  position: sticky;
-  top: 40px;
-}
-
-.focusCard {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
-  border: 1px solid var(--accent-soft);
-  border-radius: 20px;
-  padding: 32px;
-  text-align: center;
-  backdrop-filter: var(--blur-md);
-}
-
-.focusHeader {
+.ritualItemIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 16px;
+  color: var(--accent-primary);
 }
 
-.focusTimer {
-  font-size: 4rem;
-  font-weight: 800;
-  font-family: var(--font-display);
+.ritualItemInfo {
+  flex: 1;
+}
+
+.ritualItemTitle {
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 24px;
-  letter-spacing: -0.02em;
+  font-size: 0.95rem;
 }
 
-.loading {
+.ritualItemSub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.ritualItemTime {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* Strategic Command Center Card */
+.commandCenterCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100%;
+}
+
+.commandSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.subLabel {
+    font-size: 0.65rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+}
+
+.aiSuggestion {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 16px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: var(--transition-smooth);
+}
+
+.aiSuggestion:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.suggestionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent-primary);
+}
+
+.suggestionText {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.commandQuickActions {
+    margin-top: auto;
+    display: flex;
+    gap: 12px;
+}
+
+.aiBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-linear);
+    color: var(--bg-deep);
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+/* ─── Right Sidebar Section ──────────────────────── */
+.sidebarSection {
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 
-.loadingGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.stickySide {
+  position: sticky;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
   gap: 32px;
 }
 
+.calendarControl {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: 32px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calMonthNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calToggleBtn {
+  background: var(--bg-hover);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.currentMonthName {
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  background: var(--accent-secondary);
+  color: var(--text-on-accent);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+.miniCalGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.miniCalHead {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.miniCalDay {
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-secondary);
+}
+
+.activeMiniDay {
+  background: var(--text-primary);
+  color: var(--bg-deep);
+  font-weight: 800;
+}
+
+.hasTasksDay {
+    border: 1px solid var(--accent-primary);
+    position: relative;
+}
+
+.hasTasksDay::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+}
+
+.addEventBtn {
+  height: 50px !important;
+  border-radius: 99px !important;
+  font-weight: 800 !important;
+}
+
+.calFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.timelineSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.timelineTabs {
+  display: flex;
+  background: var(--bg-hover);
+  padding: 4px;
+  border-radius: 99px;
+  gap: 2px;
+  width: fit-content;
+}
+
+.timelineTabs button, .timelineTabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.activeTab { 
+    background: var(--text-primary); 
+    color: var(--bg-deep) !important; 
+}
+
+.inactiveTab { 
+    background: transparent; 
+    color: var(--text-muted) !important; 
+}
+
+.inactiveTab:hover {
+    color: var(--text-primary) !important;
+}
+
+.timelineScroll {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.viewDetailsBtn {
+  height: 50px !important;
+  border-radius: 99px !important;
+}
+
+/* Loading States */
+.loading { display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+.loadingTop { display: flex; justify-content: space-between; }
+.loadingHero { margin-bottom: 20px; }
+.loadingGrid { display: grid; grid-template-columns: 1fr 340px; gap: 40px; }
+
 @media (max-width: 1400px) {
-  .statGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .statCardsGrid { grid-template-columns: repeat(2, 1fr); }
+  .splitSection { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 1100px) {
-  .mainGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .rightCol {
-    position: static;
-  }
-}
-
-@media (max-width: 800px) {
-  .statGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .dashboardLayout { grid-template-columns: 1fr; }
+  .sidebarSection { display: none; }
 }
 
 @media (max-width: 600px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 24px;
-  }
-
-  .headerRight {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .statGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .headerLeft h1 {
-    font-size: 1.75rem;
-  }
+  .greetingTitle { font-size: 2rem; }
+  .topBar { flex-direction: column; align-items: stretch; gap: 20px; }
+  .searchWrapper { max-width: none; }
 }

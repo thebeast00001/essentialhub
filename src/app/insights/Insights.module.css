@@ -32,7 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--text-on-accent);
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
     flex-shrink: 0;
 }
@@ -58,7 +58,40 @@
 .headerRight {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+}
+
+.historicalNav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.navBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.navBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.navToday {
+    background: var(--accent-primary) !important;
+    color: var(--text-on-accent) !important;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
 }
 
 .filterToggle,
@@ -140,21 +173,41 @@
 .filterChip.active {
     background: var(--accent-primary);
     border-color: var(--accent-primary);
-    color: #fff;
-}
-
-.light .filterChip.active {
-    color: #fff;
+    color: var(--text-on-accent);
 }
 
 /* ─── Time Range Bar ─────────────────────────────────────────────────────── */
+.datePickerContainer {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dateInput {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dateInput:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-primary);
+}
+
 .timeRangeBar {
     display: flex;
-    gap: 4px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-subtle);
-    border-radius: 12px;
     padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     width: fit-content;
 }
 
@@ -163,16 +216,15 @@
 }
 
 .timeRangeBtn {
-    position: relative;
-    padding: 9px 22px;
+    padding: 6px 20px;
     border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.2s;
     border: none;
     background: transparent;
-    color: var(--text-secondary);
-    font-size: 0.83rem;
-    font-weight: 500;
     cursor: pointer;
-    transition: var(--transition-smooth);
 }
 
 .timeRangeBtn:hover {
@@ -180,7 +232,7 @@
 }
 
 .timeRangeBtn.active {
-    color: #fff;
+    color: var(--text-on-accent);
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
 }
@@ -408,7 +460,7 @@
 
 .chartTypeBtn.active {
     background: var(--accent-primary);
-    color: #fff;
+    color: var(--text-on-accent);
 }
 
 /* ─── Skeleton ───────────────────────────────────────────────────────────── */
@@ -801,42 +853,6 @@
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-primary);
-}
-
-/* ─── Background Glow ────────────────────────────────────────────────────── */
-.bgGlow {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-    overflow: hidden;
-}
-
-.glowBlob1 {
-    position: absolute;
-    top: 10%;
-    left: -10%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: blobFloat 14s ease-in-out infinite alternate;
-}
-
-.glowBlob2 {
-    position: absolute;
-    bottom: 5%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: blobFloat 18s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes blobFloat {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(40px, 30px) scale(1.12); }
 }
 
 /* ─── Activity List ───────────────────────────────────────────────────────── */

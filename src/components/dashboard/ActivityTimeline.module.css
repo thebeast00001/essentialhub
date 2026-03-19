@@ -1,58 +1,73 @@
 .container {
-    padding: 8px;
+    padding: 0;
 }
 
 .timeline {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0;
     position: relative;
+    padding-left: 0;
 }
 
 .timeline::before {
     content: '';
     position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 1px;
+    left: 13px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
     background: var(--border-subtle);
+    z-index: 0;
 }
 
 .item {
     display: flex;
-    gap: 16px;
+    gap: 20px;
+    padding: 20px 0;
     position: relative;
-    z-index: 1;
+    align-items: flex-start;
 }
 
 .iconWrapper {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+    border: none;
+    box-shadow: none;
 }
 
 .content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex: 1;
+    background: var(--bg-card);
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 1px solid var(--border-glass);
+    transition: var(--transition-smooth);
+}
+
+.item:hover .content {
+    border-color: var(--border-strong);
+    transform: translateX(5px);
 }
 
 .title {
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--text-primary);
+    margin-bottom: 4px;
 }
 
 .meta {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    text-transform: capitalize;
+    font-weight: 500;
 }
 
 .empty {
@@ -60,8 +75,22 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     color: var(--text-muted);
+    gap: 16px;
     text-align: center;
-    gap: 12px;
+    background: var(--bg-card);
+    border-radius: 24px;
+    border: 1px dashed var(--border-strong);
+}
+
+.empty p {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .content {
+        padding: 10px 14px;
+    }
 }

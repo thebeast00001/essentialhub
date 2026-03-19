@@ -2,17 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { Users, PartyPopper, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useUser, SignInButton } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
+
 import styles from './Join.module.css';
+
+import { DigitalRain } from '@/components/auth/DigitalRain';
 
 export default function JoinPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, isLoaded } = useUser();
+    const { user, loading } = useAuth();
+    const isLoaded = !loading;
+
     const inviterId = params.id as string;
     const [inviter, setInviter] = useState<any>(null);
 
@@ -35,6 +42,8 @@ export default function JoinPage() {
 
     return (
         <div className={styles.container}>
+            <DigitalRain />
+            
             <div className={styles.glassCard}>
                 <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
@@ -72,19 +81,19 @@ export default function JoinPage() {
                     </div>
 
                     <div className={styles.actions}>
-                        <SignInButton mode="modal">
+                        <Link href="/sign-up" style={{ width: '100%', textDecoration: 'none' }}>
                             <button className={styles.mainBtn}>
                                 Get Started Free <ArrowRight size={18} />
                             </button>
-                        </SignInButton>
-                        <p className={styles.footerText}>Already have an account? Sign in to accept.</p>
+                        </Link>
+
+                        <p className={styles.footerText}>
+                            Already have an account? <Link href="/sign-in" className={styles.signInLink}>Sign in to accept</Link>
+                        </p>
                     </div>
                 </motion.div>
             </div>
-            
-            {/* Background elements */}
-            <div className={styles.orb1} />
-            <div className={styles.orb2} />
         </div>
     );
 }
+

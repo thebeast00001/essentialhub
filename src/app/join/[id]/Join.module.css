@@ -140,6 +140,19 @@
     color: var(--text-muted);
 }
 
+.signInLink {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.signInLink:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
+}
+
+
 /* Background Effects */
 .orb1 {
     position: absolute;

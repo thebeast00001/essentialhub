@@ -8,7 +8,14 @@ import {
     Trash2,
     Clock,
     AlertTriangle,
-    Flame
+    Flame,
+    Zap,
+    RefreshCw,
+    ShieldCheck,
+    ShieldAlert,
+    Send,
+    Edit3,
+    ArrowUpDown
 } from 'lucide-react';
 import { useTaskStore, Activity } from '@/store/useTaskStore';
 import { formatDistanceToNow } from 'date-fns';
@@ -27,8 +34,19 @@ const activityIcons: Record<Activity['type'], React.ReactNode> = {
     task_missed: <AlertTriangle size={16} />,
     task_rescheduled: <Clock size={16} />,
     app_used: <LayoutGrid size={16} />,
-    app_session_start: <LayoutGrid size={16} />
+    app_session_start: <LayoutGrid size={16} />,
+    task_reopened: <PlusCircle size={16} />,
+    task_updated: <Edit3 size={16} />,
+    tasks_reordered: <ArrowUpDown size={16} />,
+    habit_uncompleted: <RefreshCw size={16} />,
+    timer_paused: <Clock size={16} />,
+    timer_reset: <RefreshCw size={16} />,
+    autopilot_generated: <Zap size={16} />,
+    guardian_broken: <ShieldAlert size={16} />,
+    guardian_success: <ShieldCheck size={16} />,
+    message_sent: <Send size={16} />,
 };
+
 
 const activityColors: Record<Activity['type'], string> = {
     task_created: 'var(--status-info)',
@@ -42,11 +60,27 @@ const activityColors: Record<Activity['type'], string> = {
     task_missed: 'var(--status-danger)',
     task_rescheduled: 'var(--status-warning)',
     app_used: 'var(--accent-primary)',
-    app_session_start: 'var(--accent-primary)'
+    app_session_start: 'var(--accent-primary)',
+    task_reopened: 'var(--status-info)',
+    task_updated: 'var(--status-warning)',
+    tasks_reordered: 'var(--accent-primary)',
+    habit_uncompleted: 'var(--status-danger)',
+    timer_paused: 'var(--status-warning)',
+    timer_reset: 'var(--status-info)',
+    autopilot_generated: 'var(--accent-primary)',
+    guardian_broken: 'var(--status-danger)',
+    guardian_success: 'var(--status-success)',
+    message_sent: 'var(--status-info)',
 };
 
-export const ActivityTimeline = () => {
-    const activities = useTaskStore((state) => state.activities);
+
+interface ActivityTimelineProps {
+    limit?: number;
+}
+
+export const ActivityTimeline = ({ limit }: ActivityTimelineProps) => {
+    const allActivities = useTaskStore((state) => state.activities);
+    const activities = limit ? allActivities.slice(0, limit) : allActivities;
 
     return (
         <div className={styles.container}>

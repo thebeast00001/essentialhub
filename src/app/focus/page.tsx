@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, RotateCcw, SkipForward, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, X, Shield, ShieldAlert } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
 import styles from './Focus.module.css';
 import { clsx } from 'clsx';
@@ -82,8 +82,8 @@ const HourglassClock = ({ seconds }: { seconds: number }) => {
                 <svg viewBox="0 0 150 200" fill="none" className={styles.hourglassSvg}>
                     <path 
                         d="M 10 10 L 140 10 L 85 85 L 85 115 L 140 190 L 10 190 L 65 115 L 65 85 Z" 
-                        fill="#000" 
-                        stroke="#fff" 
+                        fill="var(--bg-deep)" 
+                        stroke="var(--text-primary)" 
                         strokeWidth="8" 
                         strokeLinejoin="miter" 
                     />
@@ -165,24 +165,49 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
 export default function FocusPage() {
     const [mounted, setMounted] = useState(false);
     const [clockStyle, setClockStyle] = useState<'hourglass' | 'radio'>('radio');
+    const [localGuardianEnabled, setLocalGuardianEnabled] = useState(false);
+    
     const { 
-        tasks, timerSeconds, initialTimerSeconds, isTimerRunning,
+        tasks, timerSeconds, initialTimerSeconds, isTimerRunning, timerStartedAt, guardianModeEnabled,
         startTimer, stopTimer, resetTimer, tickTimer,
         activeTaskId, addFocusTime, focusTimeToday, setTimerDuration
     } = useTaskStore();
 
+    // Derived seconds for smooth real-time display
+    const [displaySeconds, setDisplaySeconds] = useState(timerSeconds);
+
+    useEffect(() => {
+        if (!isTimerRunning || !timerStartedAt) {
+            setDisplaySeconds(timerSeconds);
+            return;
+        }
+
+        const updateDisplay = () => {
+            const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+            setDisplaySeconds(Math.max(0, timerSeconds - elapsed));
+        };
+
+        updateDisplay();
+        const interval = setInterval(updateDisplay, 100); // Faster update for smooth UI
+        return () => clearInterval(interval);
+    }, [isTimerRunning, timerSeconds, timerStartedAt]);
+
+    // Page Visibility API for Guardian Mode
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && isTimerRunning && guardianModeEnabled) {
+                // User navigated away or minimized the window
+                stopTimer(true); // true = broken guardian penalty
+                alert("FLOW STATE GUARDIAN TRIGGERED!\n\nYou left the focus screen. Your session was terminated and a severe productivity penalty (-50) was applied.");
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [isTimerRunning, guardianModeEnabled, stopTimer]);
+
     useEffect(() => { setMounted(true); }, []);
 
-    // Timer tick management
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isTimerRunning && timerSeconds > 0) {
-            interval = setInterval(() => {
-                tickTimer();
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [isTimerRunning, timerSeconds, tickTimer]);
 
     if (!mounted) return null;
 
@@ -192,30 +217,10 @@ export default function FocusPage() {
     };
 
     return (
-        <div className={clsx(styles.shell, isTimerRunning && styles.fullscreen)}>
+        <div className={clsx(styles.shell, isTimerRunning && styles.fullscreen, isTimerRunning && guardianModeEnabled && styles.guardianActive)}>
             
-            {/* Ambient Background */}
-            <div className={styles.ambient}>
-                <motion.div 
-                    className={styles.blob1} 
-                    animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [0.08, 0.12, 0.08],
-                        translateX: [0, 50, 0]
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <motion.div 
-                    className={styles.blob2} 
-                    animate={{ 
-                        scale: [1, 1.3, 1],
-                        opacity: [0.06, 0.1, 0.06],
-                        translateX: [0, -50, 0]
-                    }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                />
-                <div className={styles.grid} />
-            </div>
+            {/* Ambient Grid */}
+            <div className={styles.grid} />
 
             {/* Style Switcher */}
             <AnimatePresence>
@@ -293,6 +298,21 @@ export default function FocusPage() {
                             onChange={handleDurationChange}
                             className={styles.durationSlider}
                         />
+
+                        {/* Guardian Mode Toggle */}
+                        <div className={styles.guardianToggleWrapper}>
+                            <button 
+                                className={clsx(styles.guardianToggleBtn, localGuardianEnabled && styles.guardianToggleActive)}
+                                onClick={() => setLocalGuardianEnabled(!localGuardianEnabled)}
+                            >
+                                {localGuardianEnabled ? <ShieldAlert size={20} /> : <Shield size={20} />}
+                                <span>{localGuardianEnabled ? 'GUARDIAN MODE: ON' : 'Enable Guardian Mode'}</span>
+                            </button>
+                            {localGuardianEnabled && (
+                                <span className={styles.guardianWarningText}>Warning: Leaving this screen will cancel the session and apply a -50 penalty.</span>
+                            )}
+                        </div>
+
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -300,9 +320,9 @@ export default function FocusPage() {
             <div className={styles.layout}>
                 {/* Center Clock */}
                 {clockStyle === 'hourglass' ? (
-                    <HourglassClock seconds={timerSeconds} />
+                    <HourglassClock seconds={displaySeconds} />
                 ) : (
-                    <RadioClock seconds={timerSeconds} isRunning={isTimerRunning} />
+                    <RadioClock seconds={displaySeconds} isRunning={isTimerRunning} />
                 )}
                 
                 {/* Controls */}
@@ -323,15 +343,18 @@ export default function FocusPage() {
                             </button>
                             
                             <button 
-                                onClick={() => startTimer()} 
-                                className={styles.playBtn}
+                                onClick={() => startTimer(undefined, localGuardianEnabled)} 
+                                className={clsx(styles.playBtn, localGuardianEnabled && styles.playBtnGuardian)}
                             >
                                 <Play fill="currentColor" size={36} style={{ marginLeft: 6 }} />
                             </button>
                             
                             <button 
                                 onClick={() => {
-                                    const duration = Math.floor((initialTimerSeconds - timerSeconds) / 60);
+                                    const actualRem = isTimerRunning && timerStartedAt 
+                                        ? timerSeconds - Math.floor((Date.now() - timerStartedAt) / 1000)
+                                        : timerSeconds;
+                                    const duration = Math.floor((initialTimerSeconds - actualRem) / 60);
                                     if (duration > 0) addFocusTime(duration);
                                     resetTimer();
                                 }} 

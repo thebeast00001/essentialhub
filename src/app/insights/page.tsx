@@ -15,14 +15,14 @@ import {
     ArrowDownRight, Minus, RefreshCw, FileText, FileSpreadsheet,
     Star, Sun, Moon, Coffee, Sparkles
 } from 'lucide-react';
-import { useTaskStore } from '@/store/useTaskStore';
-import { format, subDays, subWeeks, subMonths, startOfDay, getHours } from 'date-fns';
+import { useTaskStore, Task } from '@/store/useTaskStore';
+import { format, subDays, subWeeks, subMonths, startOfDay, endOfDay, getHours, startOfMonth, endOfMonth, isSameDay, isSameWeek, isSameMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import styles from './Insights.module.css';
 import { clsx } from 'clsx';
 import { AICoach } from '@/components/insights/AICoach';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-type TimeRange = 'daily' | 'weekly' | 'monthly';
+type TimeRange = 'daily' | 'weekly' | 'monthly' | 'yearly';
 type ChartType = 'bar' | 'line' | 'area';
 type DistributionChart = 'pie' | 'donut' | 'radial';
 type FilterCategory = 'all' | 'work' | 'study' | 'health' | 'personal';
@@ -62,7 +62,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const AUTO_INSIGHTS = [
     { icon: Lightbulb, color: '#f59e0b', title: 'Focus Tip', text: 'Work in 45-minute blocks for optimal cognitive performance.' },
     { icon: Target, color: '#10b981', title: 'Strategy', text: 'Complete your most critical task first thing in the morning.' },
-    { icon: Sparkles, color: '#6366f1', title: 'Essential Habit', text: 'Consistent daily rituals are the foundation of excellence.' },
+    { icon: Sparkles, color: '#6366f1', title: 'Essential Habit', text: 'Consistent daily habits are the foundation of excellence.' },
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -70,6 +70,7 @@ export default function InsightsPage() {
     const { tasks, focusSessions, productivityScore, activities } = useTaskStore();
 
     const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
+    const [viewDate, setViewDate] = useState(new Date());
     const [focusChartType, setFocusChartType] = useState<ChartType>('area');
     const [taskChartType, setTaskChartType] = useState<ChartType>('bar');
     const [distChartType, setDistChartType] = useState<DistributionChart>('donut');
@@ -77,112 +78,248 @@ export default function InsightsPage() {
     const [filterPriority, setFilterPriority] = useState<FilterPriority>('all');
     const [showFilters, setShowFilters] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
-    // ── Derived Metrics ────────────────────────────────────────────────────
-    const metrics = useMemo(() => {
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // ─── Shared Utilities ───────────────────────────────────────────
+    const isActuallyMissed = useCallback((t: Task, start: Date, end: Date) => {
+        if (!t.deadline || t.completed) return false;
+        const d = new Date(t.deadline);
         const now = new Date();
-        const rangeStart = timeRange === 'daily'
-            ? startOfDay(now)
-            : timeRange === 'weekly'
-                ? subWeeks(now, 1)
-                : subMonths(now, 1);
-        
-        const inRange = (dateStr: string | undefined) => {
-            if (!dateStr) return false;
-            const date = new Date(dateStr);
-            return date >= rangeStart && date <= now;
-        };
+        if (d < start || d > end) return false;
+        if (d > now) return false;
+        return true;
+    }, []);
 
-        const completedTasksInRange = tasks.filter(t => t.completed && inRange(t.completedAt));
-        const totalTasksCreatedInRange = tasks.filter(t => inRange(t.createdAt));
-        
-        const focusMinutesInRange = focusSessions
-            .filter(s => inRange(s.timestamp))
-            .reduce((acc, s) => acc + s.duration, 0);
-
-        const completionRate = totalTasksCreatedInRange.length > 0 
-            ? Math.round((completedTasksInRange.length / totalTasksCreatedInRange.length) * 100)
-            : 0;
-
-        const avgSession = focusSessions.length > 0
-            ? Math.round(focusSessions.reduce((a, s) => a + s.duration, 0) / focusSessions.length)
-            : 0;
-
-        return {
-            tasksCompleted: completedTasksInRange.length,
-            tasksCompletedChange: 0, // Would need comparison logic
-            tasksMissed: tasks.filter(t => !t.completed && t.deadline && new Date(t.deadline) < now).length,
-            focusMinutes: focusMinutesInRange,
-            focusChange: 0,
-            productivityScore: productivityScore || 0,
-            completionRate: completionRate,
-            avgSessionLength: avgSession,
-            mostProductiveDay: 'N/A', // Dynamic calculation omitted for brevity/speed
-            mostProductiveHour: 'N/A',
-        };
-    }, [tasks, focusSessions, productivityScore, timeRange]);
-
-    const aggregateChartData = useCallback((data: any[], dateKey: string, valueKey: string, range: TimeRange) => {
+    const aggregateData = useCallback((range: TimeRange, targetDate: Date = viewDate) => {
         if (range === 'weekly') {
-            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            return days.map((d, i) => {
-                const dayIndex = (i + 1) % 7; 
-                const value = data
-                    .filter(item => new Date(item[dateKey]).getDay() === dayIndex)
-                    .reduce((acc, item) => acc + (item[valueKey] || 0), 0);
-                return { label: d, focus: value, completed: 0, missed: 0 };
+            const daysLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const weekStart = startOfWeek(targetDate, { weekStartsOn: 1 });
+            return daysLabels.map((label, i) => {
+                const sDate = addDays(weekStart, i);
+                const sStart = startOfDay(sDate);
+                const sEnd = endOfDay(sDate);
+                const focus = focusSessions.filter(s => isSameDay(new Date(s.timestamp), sDate)).reduce((acc, s) => acc + s.duration, 0);
+                const completed = tasks.filter(t => {
+                    if (!t.completed || !t.completedAt) return false;
+                    const dateToUse = t.deadline ? new Date(t.deadline) : new Date(t.completedAt);
+                    return isSameDay(dateToUse, sDate);
+                }).length;
+                const missed = tasks.filter(t => isActuallyMissed(t, sStart, sEnd)).length;
+                return { label, hour: label, focus, completed, missed, productivity: Math.round(Math.min(100, (focus / 120 * 50) + (completed / 5 * 50))) };
             });
         }
         
         if (range === 'daily') {
             return Array.from({ length: 24 }, (_, i) => {
-                const value = data
-                    .filter(item => new Date(item[dateKey]).getHours() === i)
-                    .reduce((acc, item) => acc + (item[valueKey] || 0), 0);
-                return { label: `${i}:00`, focus: value, completed: 0, missed: 0 };
+                const hStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), i, 0, 0);
+                const hEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), i, 59, 59, 999);
+                const focus = focusSessions.filter(s => {
+                    const d = new Date(s.timestamp);
+                    return isSameDay(d, targetDate) && d.getHours() === i;
+                }).reduce((acc, s) => acc + s.duration, 0);
+                const completed = tasks.filter(t => {
+                    if (!t.completed || !t.completedAt) return false;
+                    const dateToUse = t.deadline ? new Date(t.deadline) : new Date(t.completedAt);
+                    return isSameDay(dateToUse, targetDate) && dateToUse.getHours() === i;
+                }).length;
+                const missed = tasks.filter(t => isActuallyMissed(t, hStart, hEnd)).length;
+                const hLabel = `${i % 12 || 12}${i >= 12 ? 'PM' : 'AM'}`;
+                const prod = Math.min(100, (focus / 30 * 50) + (completed * 50));
+                return { label: hLabel, hour: hLabel, focus, completed, missed, productivity: Math.round(prod) };
             });
         }
 
-        // monthly
-        return Array.from({ length: 30 }, (_, i) => {
-            const dayNum = i + 1;
-            const value = data
-                .filter(item => new Date(item[dateKey]).getDate() === dayNum)
-                .reduce((acc, item) => acc + (item[valueKey] || 0), 0);
-            return { label: `${dayNum}`, focus: value, completed: 0, missed: 0 };
+        if (range === 'monthly') {
+            const dMonth = endOfMonth(targetDate).getDate();
+            return Array.from({ length: dMonth }, (_, i) => {
+                const dayNum = i + 1;
+                const sDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), dayNum);
+                const focus = focusSessions.filter(s => isSameDay(new Date(s.timestamp), sDate)).reduce((acc, s) => acc + s.duration, 0);
+                const completed = tasks.filter(t => {
+                    if (!t.completed || !t.completedAt) return false;
+                    const dateToUse = t.deadline ? new Date(t.deadline) : new Date(t.completedAt);
+                    return isSameDay(dateToUse, sDate);
+                }).length;
+                const missed = tasks.filter(t => isActuallyMissed(t, startOfDay(sDate), endOfDay(sDate))).length;
+                return { label: `${dayNum}`, hour: `${dayNum}`, focus, completed, missed, productivity: Math.round(Math.min(100, (focus / 120 * 50) + (completed / 5 * 50))) };
+            });
+        }
+
+        if (range === 'yearly') {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months.map((label, i) => {
+                const focus = focusSessions.filter(s => new Date(s.timestamp).getMonth() === i && new Date(s.timestamp).getFullYear() === targetDate.getFullYear()).reduce((acc, s) => acc + s.duration, 0);
+                const completed = tasks.filter(t => {
+                    if (!t.completed || !t.completedAt) return false;
+                    const dateToUse = t.deadline ? new Date(t.deadline) : new Date(t.completedAt);
+                    return dateToUse.getMonth() === i && dateToUse.getFullYear() === targetDate.getFullYear();
+                }).length;
+                const missed = tasks.filter(t => {
+                    if (!t.deadline || t.completed) return false;
+                    const d = new Date(t.deadline);
+                    return d.getMonth() === i && d.getFullYear() === targetDate.getFullYear() && isActuallyMissed(t, startOfMonth(d), endOfMonth(d));
+                }).length;
+                return { label, hour: label, focus, completed, missed, productivity: Math.round(Math.min(100, (focus / 500 * 50) + (completed / 20 * 50))) };
+            });
+        }
+
+        return [];
+    }, [tasks, focusSessions, viewDate, isActuallyMissed]);
+
+    const metrics = useMemo(() => {
+        const now = viewDate;
+        const rangeStart = timeRange === 'daily' ? startOfDay(now) :
+                          timeRange === 'weekly' ? startOfWeek(now, { weekStartsOn: 1 }) :
+                          timeRange === 'monthly' ? startOfMonth(now) :
+                          new Date(now.getFullYear(), 0, 1);
+        
+        const rangeEnd = timeRange === 'daily' ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999) :
+                        timeRange === 'weekly' ? endOfWeek(now, { weekStartsOn: 1 }) :
+                        timeRange === 'monthly' ? endOfMonth(now) :
+                        new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+
+        const isCurrent = (dateStr: string | Date | undefined) => {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (timeRange === 'daily') return isSameDay(d, now);
+            if (timeRange === 'weekly') return isSameWeek(d, now, { weekStartsOn: 1 });
+            if (timeRange === 'monthly') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            return d.getFullYear() === now.getFullYear();
+        };
+
+        const prevStart = timeRange === 'daily' ? subDays(rangeStart, 1) :
+                         timeRange === 'weekly' ? subWeeks(rangeStart, 1) :
+                         timeRange === 'monthly' ? subMonths(rangeStart, 1) :
+                         new Date(now.getFullYear() - 1, 0, 1);
+        
+        const prevEnd = timeRange === 'daily' ? new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 23, 59, 59, 999) :
+                       timeRange === 'weekly' ? endOfWeek(prevStart, { weekStartsOn: 1 }) :
+                       timeRange === 'monthly' ? endOfMonth(prevStart) :
+                       new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+
+        const isPrev = (dateStr: string | Date | undefined) => {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (timeRange === 'daily') return isSameDay(d, prevStart);
+            if (timeRange === 'weekly') return isSameWeek(d, prevStart, { weekStartsOn: 1 });
+            if (timeRange === 'monthly') {
+                const prevMonth = subMonths(now, 1);
+                return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
+            }
+            return d.getFullYear() === now.getFullYear() - 1;
+        };
+
+        const currentTasks = tasks.filter(t => {
+            if (!t.completed || !t.completedAt) return false;
+            const dateToUse = t.deadline ? t.deadline : t.completedAt;
+            return isCurrent(dateToUse);
         });
-    }, []);
+        const prevTasks = tasks.filter(t => {
+            if (!t.completed || !t.completedAt) return false;
+            const dateToUse = t.deadline ? t.deadline : t.completedAt;
+            return isPrev(dateToUse);
+        });
+        const curSessions = focusSessions.filter(s => isCurrent(s.timestamp));
+        const preSessions = focusSessions.filter(s => isPrev(s.timestamp));
+
+        const curFocusMins = curSessions.reduce((acc, s) => acc + s.duration, 0);
+        const preFocusMins = preSessions.reduce((acc, s) => acc + s.duration, 0);
+
+        const curMissed = tasks.filter(t => isActuallyMissed(t, rangeStart, rangeEnd)).length;
+        const preMissed = tasks.filter(t => isActuallyMissed(t, prevStart, prevEnd)).length;
+
+        const calcChange = (cur: number, pre: number) => {
+            if (pre === 0) return cur > 0 ? 100 : 0;
+            return Math.round(((cur - pre) / pre) * 100);
+        };
+
+        const calcScore = (comps: number, mins: number) => {
+            if (comps === 0 && mins === 0) return 0;
+            return Math.round(Math.min(100, (mins / 120 * 50) + (comps / 5 * 50)));
+        };
+
+        const curDenominator = tasks.filter(t => t.deadline && isCurrent(t.deadline)).length;
+        const curNumerator = currentTasks.filter(t => t.deadline && isCurrent(t.deadline)).length;
+        const curRate = curDenominator > 0 ? Math.round((curNumerator / curDenominator) * 100) : 0;
+
+        const preDenominator = tasks.filter(t => t.deadline && isPrev(t.deadline)).length;
+        const preNumerator = prevTasks.filter(t => t.deadline && isPrev(t.deadline)).length;
+        const preRate = preDenominator > 0 ? Math.round((preNumerator / preDenominator) * 100) : 0;
+
+        const hourlyStats = new Array(24).fill(0);
+        curSessions.forEach(s => hourlyStats[new Date(s.timestamp).getHours()] += s.duration);
+        const peakHIdx = hourlyStats.indexOf(Math.max(...hourlyStats));
+        const peakH = peakHIdx >= 0 && Math.max(...hourlyStats) > 0 ? `${peakHIdx % 12 || 12}${peakHIdx < 12 ? 'AM' : 'PM'}` : '--';
+
+        const dayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayStats = new Array(7).fill(0);
+        curSessions.forEach(s => dayStats[new Date(s.timestamp).getDay()] += s.duration);
+        const peakDIdx = dayStats.indexOf(Math.max(...dayStats));
+        const peakD = Math.max(...dayStats) > 0 ? dayLabels[peakDIdx] : '--';
+
+        return {
+            tasksCompleted: currentTasks.length,
+            tasksCompletedPrev: prevTasks.length,
+            tasksCompletedChange: calcChange(currentTasks.length, prevTasks.length),
+            tasksMissed: curMissed,
+            tasksMissedPrev: preMissed,
+            tasksMissedChange: calcChange(curMissed, preMissed),
+            focusMinutes: curFocusMins,
+            focusMinutesPrev: preFocusMins,
+            focusChange: calcChange(curFocusMins, preFocusMins),
+            productivityScore: calcScore(currentTasks.length, curFocusMins),
+            productivityScorePrev: calcScore(prevTasks.length, preFocusMins),
+            productivityScoreChange: calcChange(calcScore(currentTasks.length, curFocusMins), calcScore(prevTasks.length, preFocusMins)),
+            completionRate: curRate,
+            completionRateChange: calcChange(curRate, preRate),
+            avgSessionLength: curSessions.length > 0 ? Math.round(curFocusMins / curSessions.length) : 0,
+            avgSessionLengthPrev: preSessions.length > 0 ? Math.round(preFocusMins / preSessions.length) : 0,
+            avgSessionLengthChange: calcChange(curSessions.length > 0 ? curFocusMins / curSessions.length : 0, preSessions.length > 0 ? preFocusMins / preSessions.length : 0),
+            mostProductiveDay: peakD,
+            mostProductiveHour: peakH,
+        };
+    }, [tasks, focusSessions, timeRange, viewDate, isActuallyMissed]);
 
     const focusData = useMemo(() => {
-        const realData = focusSessions.map(s => ({ timestamp: s.timestamp, value: s.duration }));
-        const aggregated = aggregateChartData(realData, 'timestamp', 'value', timeRange);
-        return aggregated.map((d) => ({
-            ...d,
-            focus: d.focus,
-            prev: 0
-        }));
-    }, [focusSessions, timeRange, aggregateChartData]);
+        const current = aggregateData(timeRange);
+        
+        let prevDate: Date;
+        if (timeRange === 'daily') prevDate = subDays(viewDate, 1);
+        else if (timeRange === 'weekly') prevDate = subWeeks(viewDate, 1);
+        else if (timeRange === 'monthly') prevDate = subMonths(viewDate, 1);
+        else prevDate = new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), viewDate.getDate());
 
-    const taskData = useMemo(() => {
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        return days.map(d => {
-            const completedTag = tasks.filter(t => t.completed && t.completedAt && format(new Date(t.completedAt), 'EEE') === d).length;
-            const missedTag = tasks.filter(t => !t.completed && t.deadline && format(new Date(t.deadline), 'EEE') === d && new Date(t.deadline) < new Date()).length;
-            return {
-                label: d,
-                completed: completedTag,
-                missed: missedTag
-            };
-        });
-    }, [tasks]);
+        const prev = aggregateData(timeRange, prevDate);
+        
+        return current.map((d, i) => ({
+            ...d,
+            prev: prev[i]?.focus || 0
+        }));
+    }, [timeRange, aggregateData, viewDate]);
+
+    const taskData = useMemo(() => aggregateData(timeRange), [timeRange, aggregateData]);
+    const hourlyData = useMemo(() => aggregateData('daily'), [aggregateData]);
 
     const categoryData = useMemo(() => {
+        const checkRange = (dateStr: string | undefined) => {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (timeRange === 'daily') return isSameDay(d, viewDate);
+            if (timeRange === 'weekly') return isSameWeek(d, viewDate, { weekStartsOn: 1 });
+            if (timeRange === 'monthly') return d.getMonth() === viewDate.getMonth() && d.getFullYear() === viewDate.getFullYear();
+            return d.getFullYear() === viewDate.getFullYear();
+        };
+
+        const rangeTasks = tasks.filter(t => t.completed && t.completedAt && checkRange(t.completedAt));
         const counts: Record<string, number> = {};
-        tasks.forEach(t => {
-            const tag = t.tags[0] || 'Uncategorized';
+        rangeTasks.forEach(t => {
+            const tag = t.tags[0] || 'General';
             counts[tag] = (counts[tag] || 0) + 1;
         });
-        
         const total = Object.values(counts).reduce((a, b) => a + b, 0);
         if (total === 0) return [];
 
@@ -191,24 +328,9 @@ export default function InsightsPage() {
             value: Math.round((count / total) * 100),
             color: CATEGORY_COLORS[i % CATEGORY_COLORS.length]
         })).sort((a, b) => b.value - a.value);
-    }, [tasks]);
+    }, [tasks, viewDate, timeRange]);
 
-    const hourlyData = useMemo(() => {
-        const data = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}h`, productivity: 0 }));
-        
-        // Use focus sessions to calculate peak hours
-        focusSessions.forEach(s => {
-            const hour = new Date(s.timestamp).getHours();
-            data[hour].productivity += s.duration;
-        });
 
-        // Normalize to 100%
-        const max = Math.max(...data.map(d => d.productivity), 1);
-        return data.map(d => ({
-            ...d,
-            productivity: Math.round((d.productivity / max) * 100)
-        }));
-    }, [focusSessions]);
 
     // ── Time Range Switch ──────────────────────────────────────────────────
     const handleTimeRangeChange = useCallback((range: TimeRange) => {
@@ -278,8 +400,8 @@ export default function InsightsPage() {
                     </linearGradient>
                 </defs>
                 {grid}{xAxis}{yAxis}{tooltip}{legend}
-                <Area type="monotone" dataKey="focus" name="This Period" stroke={CHART_COLORS.primary} fill="url(#focusGrad)" strokeWidth={2.5} unit="m" />
-                <Area type="monotone" dataKey="prev" name="Previous" stroke={CHART_COLORS.secondary} fill="url(#prevGrad)" strokeWidth={1.5} strokeDasharray="4 4" unit="m" />
+                <Area type="monotone" dataKey="focus" name="This Period" stroke={CHART_COLORS.primary} fill="url(#focusGrad)" strokeWidth={2.5} unit="m" animationDuration={400} />
+                <Area type="monotone" dataKey="prev" name="Previous" stroke={CHART_COLORS.secondary} fill="url(#prevGrad)" strokeWidth={1.5} strokeDasharray="4 4" unit="m" animationDuration={400} />
             </AreaChart>
         );
     };
@@ -318,8 +440,8 @@ export default function InsightsPage() {
         return (
             <BarChart {...commonProps}>
                 {grid}{xAxis}{yAxis}{tooltip}{legend}
-                <Bar dataKey="completed" name="Completed" fill={CHART_COLORS.success} radius={[4, 4, 0, 0]} stackId="tasks" />
-                <Bar dataKey="missed" name="Missed" fill={CHART_COLORS.danger} radius={[4, 4, 0, 0]} stackId="tasks" />
+                <Bar dataKey="completed" name="Completed" fill={CHART_COLORS.success} radius={[4, 4, 0, 0]} stackId="tasks" animationDuration={400} />
+                <Bar dataKey="missed" name="Missed" fill={CHART_COLORS.danger} radius={[4, 4, 0, 0]} stackId="tasks" animationDuration={400} />
             </BarChart>
         );
     };
@@ -356,6 +478,8 @@ export default function InsightsPage() {
     };
 
     // ─── Render ─────────────────────────────────────────────────────────────
+    if (!mounted) return null;
+
     return (
         <div className={styles.page}>
             {/* Header */}
@@ -365,10 +489,22 @@ export default function InsightsPage() {
                         <BarChart3 size={20} />
                     </div>
                     <div>
-                        <h1 className={styles.title}>Productivity Insights</h1>
-                        <p className={styles.subtitle}>
-                            {format(new Date(), 'EEEE, MMMM do yyyy')} · Comprehensive analytics dashboard
-                        </p>
+                        <h1 className={styles.title}>Dynamic Insights</h1>
+                        <div className={styles.datePickerContainer}>
+                            <input 
+                                type="date" 
+                                className={styles.dateInput}
+                                value={format(viewDate, 'yyyy-MM-dd')}
+                                onChange={(e) => {
+                                    const [y, m, d] = e.target.value.split('-').map(Number);
+                                    // Always set to start of day for consistency, logic will handle "effectiveEnd"
+                                    setViewDate(new Date(y, m - 1, d, 0, 0, 0));
+                                }}
+                            />
+                            <p className={styles.subtitle}>
+                                Analysis for period ending {format(viewDate, 'MMM do, yyyy')}
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div className={styles.headerRight}>
@@ -420,14 +556,18 @@ export default function InsightsPage() {
 
             {/* Time Range Selector */}
             <motion.div className={styles.timeRangeBar} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                {(['daily', 'weekly', 'monthly'] as TimeRange[]).map(r => (
+                {[
+                    { id: 'daily', label: 'Daily' },
+                    { id: 'weekly', label: 'Weekly' },
+                    { id: 'monthly', label: 'Monthly' },
+                    { id: 'yearly', label: 'Yearly' }
+                ].map(r => (
                     <button
-                        key={r}
-                        className={clsx(styles.timeRangeBtn, timeRange === r && styles.active)}
-                        onClick={() => handleTimeRangeChange(r)}
+                        key={r.id}
+                        className={clsx(styles.timeRangeBtn, timeRange === r.id && styles.active)}
+                        onClick={() => handleTimeRangeChange(r.id as TimeRange)}
                     >
-                        {isLoading && timeRange !== r ? null : null}
-                        {r.charAt(0).toUpperCase() + r.slice(1)} Insights
+                        {r.label}
                     </button>
                 ))}
             </motion.div>
@@ -454,7 +594,7 @@ export default function InsightsPage() {
                         icon={<XCircle size={18} />}
                         label="Tasks Missed"
                         value={metrics.tasksMissed}
-                        change={-12}
+                        change={metrics.tasksMissedChange}
                         color="var(--status-danger)"
                         timeRange={timeRange}
                         invertTrend
@@ -473,7 +613,7 @@ export default function InsightsPage() {
                         label="Productivity Score"
                         value={metrics.productivityScore}
                         suffix="%"
-                        change={5}
+                        change={metrics.productivityScoreChange}
                         color="var(--status-warning)"
                         timeRange={timeRange}
                     />
@@ -482,7 +622,7 @@ export default function InsightsPage() {
                         label="Completion Rate"
                         value={metrics.completionRate}
                         suffix="%"
-                        change={8}
+                        change={metrics.completionRateChange}
                         color="var(--status-info)"
                         timeRange={timeRange}
                     />
@@ -491,7 +631,7 @@ export default function InsightsPage() {
                         label="Avg Session"
                         value={metrics.avgSessionLength}
                         suffix="m"
-                        change={3}
+                        change={metrics.avgSessionLengthChange}
                         color="var(--accent-secondary)"
                         timeRange={timeRange}
                     />
@@ -665,7 +805,7 @@ export default function InsightsPage() {
                         </div>
                         <div className={styles.peakBadge}>
                             <Zap size={12} />
-                            <span>Peak: 9–11 AM</span>
+                            <span>Peak: {metrics.mostProductiveHour}</span>
                         </div>
                     </div>
                     <div className={styles.chartContainer}>
@@ -713,67 +853,21 @@ export default function InsightsPage() {
             >
                 <div className={styles.trendStripTitle}>
                     <TrendingUp size={16} />
-                    <span>Period Comparison</span>
+                    <span>Historical Variance</span>
                 </div>
                 <div className={styles.trendCards}>
-                    <TrendCompareCard label="Focus Time" current={342} prev={290} unit="m" color={CHART_COLORS.primary} />
-                    <TrendCompareCard label="Tasks Done" current={14} prev={12} unit="" color={CHART_COLORS.success} />
-                    <TrendCompareCard label="Completion" current={74} prev={68} unit="%" color={CHART_COLORS.warning} />
-                    <TrendCompareCard label="Avg Session" current={47} prev={52} unit="m" color={CHART_COLORS.info} />
-                    <TrendCompareCard label="Streak Days" current={5} prev={3} unit="d" color={CHART_COLORS.purple} />
-                    <TrendCompareCard label="Tasks Missed" current={3} prev={6} unit="" color={CHART_COLORS.danger} invertGood />
+                    <TrendCompareCard label="Focus Time" current={metrics.focusMinutes} prev={metrics.focusMinutesPrev} unit="m" color={CHART_COLORS.primary} />
+                    <TrendCompareCard label="Tasks Done" current={metrics.tasksCompleted} prev={metrics.tasksCompletedPrev} unit="" color={CHART_COLORS.success} />
+                    <TrendCompareCard label="P. Score" current={metrics.productivityScore} prev={metrics.productivityScorePrev} unit="%" color={CHART_COLORS.warning} />
+                    <TrendCompareCard label="Avg Session" current={metrics.avgSessionLength} prev={metrics.avgSessionLengthPrev} unit="m" color={CHART_COLORS.info} />
                 </div>
             </motion.div>
 
 
             {/* ── AI Productivity Coach Section ──────────────────────────────── */}
-            <AICoach />
+            <AICoach viewDate={viewDate} timeRange={timeRange} />
 
-            {/* ── Detailed Activity Log ────────────────────────────────────── */}
-            <motion.div
-                className={styles.insightsSection}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                style={{ marginTop: '48px' }}
-            >
-                <div className={styles.sectionHeader}>
-                    <Activity size={18} className={styles.sectionIcon} style={{ color: 'var(--accent-primary)' }} />
-                    <div>
-                        <h2 className={styles.sectionTitle}>Essential Audit</h2>
-                        <p className={styles.sectionSub}>A complete log of your productivity actions</p>
-                    </div>
-                </div>
-                
-                <div className={styles.activityList}>
-                    {activities.length > 0 ? (
-                        activities.map((act, i) => (
-                            <motion.div 
-                                key={act.id} 
-                                className={styles.activityItem}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 + i * 0.03 }}
-                            >
-                                <div className={styles.activityDot} />
-                                <div className={styles.activityTime}>{format(new Date(act.timestamp), 'HH:mm')}</div>
-                                <div className={styles.activityContent}>
-                                    <span className={styles.activityType}>{act.type.replace(/_/g, ' ')}</span>
-                                    <span className={styles.activityDesc}>{act.title}</span>
-                                </div>
-                            </motion.div>
-                        ))
-                    ) : (
-                        <div className={styles.empty}>No recent activity logged. Start your first session to see logs.</div>
-                    )}
-                </div>
-            </motion.div>
 
-            {/* Background Glow */}
-            <div className={styles.bgGlow}>
-                <div className={styles.glowBlob1} />
-                <div className={styles.glowBlob2} />
-            </div>
         </div>
     );
 }

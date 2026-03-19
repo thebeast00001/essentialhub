@@ -1,170 +1,241 @@
 "use client";
 
+import React from 'react';
+import { motion } from 'framer-motion';
 import { SignUp } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, Dices, User } from "lucide-react";
-import { useTheme } from "next-themes";
-import { dark } from "@clerk/themes";
+import { DigitalRain } from '@/components/auth/DigitalRain';
+import { generateRandomUsername } from '@/utils/usernameGenerator';
+import { Zap } from 'lucide-react';
+import styles from './SignUp.module.css';
 
-// Essential-style auto-generated usernames
-const ADJECTIVES = ["Essential", "Absolute", "Core", "Pure", "Primal", "Zen", "Active", "Focus", "High", "Elite"];
-const NOUNS = ["Mind", "Soul", "Stream", "Drift", "Logic", "Force", "Path", "Orbit", "Drive", "Focus"];
-
-const generateUsername = () => {
-    const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-    const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-    const randomNum = Math.floor(1000 + Math.random() * 9000); 
-    const timestamp = Date.now().toString().slice(-3); // Last 3 digits of timestamp for extra safety
-    return `${adj}${noun}${randomNum}${timestamp}`;
-};
+const steps = [
+    { num: 1, title: 'Create your account',   desc: 'Set up your Zenith profile' },
+    { num: 2, title: 'Build your workspace',  desc: 'Configure tasks & habits' },
+    { num: 3, title: 'Reach peak velocity',   desc: 'Start dominating your goals' },
+];
 
 export default function SignUpPage() {
-    const { theme } = useTheme();
-    const [step, setStep] = useState<"username" | "clerk">("username");
-    const [suggestedUsername, setSuggestedUsername] = useState("");
+    const [tempUsername, setTempUsername] = React.useState('');
 
-    useEffect(() => {
-        setSuggestedUsername(generateUsername());
+    React.useEffect(() => {
+        setTempUsername(generateRandomUsername());
     }, []);
 
-    const reroll = () => {
-        setSuggestedUsername(generateUsername());
-    };
-
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, var(--bg-deep) 100%)",
-            padding: "24px"
-        }}>
-            <AnimatePresence mode="wait">
-                {step === "username" ? (
-                    <motion.div
-                        key="username-step"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-                        transition={{ duration: 0.4 }}
-                        style={{
-                            background: "var(--bg-card)",
-                            backdropFilter: "blur(20px)",
-                            border: "1px solid var(--border-strong)",
-                            padding: "48px",
-                            borderRadius: "24px",
-                            boxShadow: "var(--shadow-lg)",
-                            textAlign: "center",
-                            maxWidth: "480px",
-                            width: "100%"
-                        }}
-                    >
-                        <div style={{
-                            width: "64px", height: "64px", borderRadius: "50%",
-                            background: "rgba(99,102,241,0.1)", color: "var(--accent-primary)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            margin: "0 auto 24px auto"
-                        }}>
-                            <Sparkles size={32} />
-                        </div>
+        <div className={styles.page}>
+            <DigitalRain />
 
-                        <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "16px", color: "var(--text-primary)" }}>
-                            ESSENTIAL Identity
-                        </h1>
-                        <p style={{ color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.6 }}>
-                            Before you enter the workspace, let's establish your alias. We've generated a unique identity for you.
-                        </p>
-
-                        <div style={{
-                            background: "rgba(0,0,0,0.4)",
-                            border: "1px solid var(--border-subtle)",
-                            borderRadius: "16px",
-                            padding: "24px",
-                            marginBottom: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between"
-                        }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                <User style={{ color: "var(--accent-primary)" }} size={24} />
-                                <span style={{ fontSize: "1.5rem", fontWeight: 700, whiteSpace: "nowrap", color: "var(--text-primary)", letterSpacing: "1px" }}>
-                                    {suggestedUsername}
-                                </span>
+            <motion.div
+                className={styles.card}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            >
+                {/* ── LEFT PANEL ───────────────────────────────── */}
+                <div className={styles.leftPanel}>
+                    <div className={styles.leftContent}>
+                        <div className={styles.logoArea}>
+                            <div className={styles.logoIcon}>
+                                <Zap size={24} fill="var(--accent-primary)" />
                             </div>
-                            <button
-                                onClick={reroll}
-                                style={{
-                                    background: "transparent", border: "1px solid var(--border-strong)",
-                                    color: "var(--text-primary)", padding: "8px", borderRadius: "8px", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s"
-                                }}
-                                title="Reroll Username"
-                                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                            >
-                                <Dices size={20} />
-                            </button>
+                            <span className={styles.logoText}>ESSENTIAL</span>
                         </div>
 
-                        <button
-                            onClick={() => setStep("clerk")}
-                            style={{
-                                width: "100%", padding: "16px", borderRadius: "12px", border: "none",
-                                background: "var(--accent-gradient)", color: "white", fontSize: "1.1rem",
-                                fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center",
-                                justifyContent: "center", gap: "8px", boxShadow: "0 10px 30px rgba(99,102,241,0.3)",
-                                transition: "all 0.2s"
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+                        <motion.div
+                            className={styles.heroText}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3, duration: 0.7 }}
                         >
-                            Claim Identity <ArrowRight size={20} />
-                        </button>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="clerk-step"
-                        initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-                        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                        transition={{ duration: 0.4 }}
-                    >
-                        {/* 
-                            Pass the generated username to Clerk.
-                            Note: Depending on Clerk settings, the user might still need to enter an email. 
-                        */}
+                            <h1 className={styles.heroTitle}>Get Started<br />with <span className="text-gradient">ESSENTIAL</span>.</h1>
+                            <p className={styles.heroSub}>Complete these steps to register<br />and unlock your full potential.</p>
+                        </motion.div>
+
+                        <div className={styles.stepCards}>
+                            {steps.map((step, i) => (
+                                <motion.div
+                                    key={step.num}
+                                    className={`${styles.stepCard} ${i === 0 ? styles.activeStep : ''}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
+                                >
+                                    <div className={styles.stepNum}>{step.num}</div>
+                                    <div className={styles.stepInfo}>
+                                        <span className={styles.stepTitle}>{step.title}</span>
+                                        <span className={styles.stepDesc}>{step.desc}</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── RIGHT PANEL ──────────────────────────────── */}
+                <motion.div
+                    className={styles.rightPanel}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.7 }}
+                >
+                    <div className={styles.rightContentWrapper}>
                         <SignUp 
-                            initialValues={{ username: suggestedUsername }} 
-                            routing="hash" 
+                            initialValues={{
+                                username: tempUsername
+                            }}
                             appearance={{
-                                baseTheme: dark,
                                 elements: {
+                                    rootBox: {
+                                        width: '100%',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                    },
                                     card: {
-                                        boxShadow: "0 20px 80px rgba(0,0,0,0.8)",
-                                        border: "1px solid var(--border-strong)",
-                                        backdropFilter: "blur(20px)",
-                                        background: "var(--bg-card)",
+                                        background: 'transparent',
+                                        boxShadow: 'none',
+                                        border: 'none',
+                                        width: '100%',
+                                        padding: '20px 40px', // Added horizontal padding to prevent touching edges
                                     },
-                                    headerTitle: {
-                                        color: "var(--text-primary)",
-                                        fontSize: "1.5rem",
-                                        fontWeight: 800
+                                    header: {
+                                        display: 'none', // Hide default Clerk header
                                     },
-                                    headerSubtitle: {
-                                        color: "var(--text-muted)"
+                                    socialButtonsBlockButton: {
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        color: '#ffffff',
+                                        height: '52px',
+                                        borderRadius: '14px',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            background: 'rgba(255, 255, 255, 0.08)',
+                                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                                            transform: 'translateY(-1px)',
+                                        }
+                                    },
+                                    socialButtonsBlockButtonText: {
+                                        color: '#ffffff',
+                                        fontWeight: '600',
+                                        fontSize: '0.9rem',
+                                    },
+                                    dividerLine: {
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                    },
+                                    dividerText: {
+                                        color: 'rgba(255, 255, 255, 0.3)',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        fontWeight: '600',
+                                        letterSpacing: '0.05em',
+                                    },
+                                    formField: {
+                                        marginBottom: '20px',
+                                        width: '100%',
+                                    },
+                                    formFieldLabel: {
+                                        color: 'rgba(255, 255, 255, 0.4)',
+                                        fontSize: '0.75rem',
+                                        fontWeight: '700',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.02rem',
+                                        marginBottom: '12px',
+                                        display: 'block',
+                                        width: '100%',
+                                        textAlign: 'left',
+                                    },
+                                    formFieldInput: {
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        color: '#ffffff',
+                                        borderRadius: '14px',
+                                        padding: '14px 18px',
+                                        fontSize: '0.95rem',
+                                        transition: 'all 0.2s ease',
+                                        '&:focus': {
+                                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                                            background: 'rgba(255, 255, 255, 0.06)',
+                                            boxShadow: '0 0 0 3px rgba(255, 255, 255, 0.05)',
+                                        }
+                                    },
+                                    formFieldInputShowPasswordButton: {
+                                        color: 'rgba(255, 255, 255, 0.5)',
+                                        '&:hover': {
+                                            color: '#ffffff',
+                                        }
                                     },
                                     formButtonPrimary: {
-                                        background: "var(--accent-gradient)",
-                                        border: "none",
-                                        boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4)",
+                                        background: 'var(--accent-primary, #ffffff)',
+                                        color: 'var(--text-on-accent, #000000)',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '700',
+                                        borderRadius: '14px',
+                                        padding: '16px',
+                                        marginTop: '16px',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        '&:hover': {
+                                            background: '#f3f4f6',
+                                            transform: 'translateY(-1px)',
+                                        },
+                                        '&:active': {
+                                            transform: 'translateY(0)',
+                                        }
+                                    },
+                                    otpCodeFieldInputs: {
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        gap: '10px',
+                                        marginBottom: '20px',
+                                    },
+                                    otpCodeFieldInput: {
+                                        width: '46px',
+                                        height: '52px',
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        color: '#ffffff',
+                                        fontSize: '1.4rem',
+                                        fontWeight: '700',
+                                        textAlign: 'center',
+                                        padding: '0',
+                                        '&:focus': {
+                                            borderColor: '#ffffff',
+                                            background: 'rgba(255, 255, 255, 0.06)',
+                                            boxShadow: '0 0 0 3px rgba(255, 255, 255, 0.1)',
+                                        }
+                                    },
+                                    formResendCodeLink: {
+                                        color: '#ffffff',
+                                        fontWeight: '600',
+                                        fontSize: '0.85rem',
+                                        textDecoration: 'none',
+                                        '&:hover': {
+                                            textDecoration: 'underline',
+                                        }
+                                    },
+                                    footerActionText: {
+                                        color: 'rgba(255, 255, 255, 0.5)',
+                                        fontSize: '0.9rem',
+                                    },
+                                    footerActionLink: {
+                                        color: '#ffffff',
+                                        fontWeight: '600',
+                                        fontSize: '0.9rem',
+                                        '&:hover': {
+                                            color: 'rgba(255, 255, 255, 0.8)',
+                                            textDecoration: 'underline decoration-thickness-2',
+                                        }
                                     }
-                                }
+                                },
                             }}
                         />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </motion.div>
+
+            </motion.div>
         </div>
     );
 }

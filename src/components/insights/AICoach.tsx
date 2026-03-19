@@ -9,41 +9,81 @@ import {
     Brain
 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
-import { format, subWeeks, startOfWeek, endOfWeek, isWithinInterval, getHours, getDay } from 'date-fns';
+import { format, subWeeks, subDays, subMonths, startOfWeek, endOfWeek, startOfDay, isWithinInterval, getHours, getDay, isSameDay, startOfMonth } from 'date-fns';
 import styles from './AICoach.module.css';
 import { clsx } from 'clsx';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
+
 import { Mail, Loader2, Check } from 'lucide-react';
 
-// ─── Component ───────────────────────────────────────────────────────────────
-export const AICoach = () => {
+interface AICoachProps {
+    viewDate?: Date;
+    timeRange?: string;
+}
+
+export const AICoach = ({ viewDate = new Date(), timeRange = 'weekly' }: AICoachProps) => {
     const { tasks, focusSessions, productivityScore, userId } = useTaskStore();
-    const { user } = useUser();
+    const { user } = useAuth();
 
     // ── Pattern Analysis ────────────────────────────────────────────────────
     const analysis = useMemo(() => {
-        const now = new Date();
-        const lastWeek = subWeeks(now, 1);
-        const twoWeeksAgo = subWeeks(now, 2);
-
-        // Weekly comparison
-        const thisWeekTasks = tasks.filter(t => t.completed && t.completedAt && new Date(t.completedAt) >= lastWeek);
-        const lastWeekTasks = tasks.filter(t => t.completed && t.completedAt && new Date(t.completedAt) >= twoWeeksAgo && new Date(t.completedAt) < lastWeek);
+        const now = viewDate;
+        const effectiveEnd = isSameDay(now, new Date()) ? new Date() : new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
         
-        const taskIncr = lastWeekTasks.length > 0 
-            ? Math.round(((thisWeekTasks.length - lastWeekTasks.length) / lastWeekTasks.length) * 100)
-            : thisWeekTasks.length * 100;
+        // ── Main dynamic range for the general AI cards (Insights/Suggestions)
+        let mainStart: Date;
+        if (timeRange === 'daily') mainStart = startOfDay(now);
+        else if (timeRange === 'weekly') mainStart = startOfWeek(now, { weekStartsOn: 1 });
+        else if (timeRange === 'monthly') mainStart = startOfMonth(now);
+        else mainStart = new Date(now.getFullYear(), 0, 1);
 
-        const thisWeekFocus = focusSessions.filter(s => new Date(s.timestamp) >= lastWeek).reduce((acc, s) => acc + s.duration, 0);
-        const lastWeekFocus = focusSessions.filter(s => new Date(s.timestamp) >= twoWeeksAgo && new Date(s.timestamp) < lastWeek).reduce((acc, s) => acc + s.duration, 0);
+        // ── Dedicated Weekly Stats for the bottom card
+        const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+        const weekEnd = isSameDay(now, new Date()) ? new Date() : new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
         
-        const focusIncr = lastWeekFocus > 0 
-            ? Math.round(((thisWeekFocus - lastWeekFocus) / lastWeekFocus) * 100)
-            : thisWeekFocus > 0 ? 100 : 0;
+        const calcStats = (start: Date, end: Date) => {
+            const rangeTasks = tasks.filter(t => {
+                if (!t.completed || !t.completedAt) return false;
+                const d = t.deadline ? new Date(t.deadline) : new Date(t.completedAt);
+                return d >= start && d <= end;
+            });
+            const rangeSessions = focusSessions.filter(s => new Date(s.timestamp) >= start && new Date(s.timestamp) <= end);
+            const focusMins = rangeSessions.reduce((acc, s) => acc + s.duration, 0);
+            
+            const missed = tasks.filter(t => {
+                if (!t.deadline || t.completed) return false;
+                const d = new Date(t.deadline);
+                const currentTime = new Date();
+                if (d < start || d > end) return false;
+                if (d > currentTime) return false;
+                return true;
+            }).length;
 
-        // Peak Hours
+            const score = (rangeTasks.length > 0 || focusMins > 0)
+                ? Math.round(Math.min(100, (rangeTasks.length / 5 * 50) + (focusMins / 120 * 50)))
+                : 0;
+
+            return { taskCount: rangeTasks.length, focusMins, missed, score };
+        };
+
+        const mainStats = calcStats(mainStart, effectiveEnd);
+        const weeklyStats = calcStats(weekStart, effectiveEnd);
+
+        // Comparison for main analysis
+        const prevRangeStart = timeRange === 'daily' ? subDays(mainStart, 1) : subWeeks(mainStart, 1);
+        const prevStats = calcStats(prevRangeStart, new Date(mainStart.getTime() - 1));
+        
+        const taskIncr = prevStats.taskCount > 0 
+            ? Math.round(((mainStats.taskCount - prevStats.taskCount) / prevStats.taskCount) * 100)
+            : mainStats.taskCount > 0 ? 100 : 0;
+
+        const focusIncr = prevStats.focusMins > 0 
+            ? Math.round(((mainStats.focusMins - prevStats.focusMins) / prevStats.focusMins) * 100)
+            : mainStats.focusMins > 0 ? 100 : 0;
+
+        // Peak Hours (within main range)
         const hourlyStats = Array(24).fill(0);
-        focusSessions.forEach(s => {
+        focusSessions.filter(s => new Date(s.timestamp) >= mainStart && new Date(s.timestamp) <= effectiveEnd).forEach(s => {
             const h = getHours(new Date(s.timestamp));
             hourlyStats[h] += s.duration;
         });
@@ -51,121 +91,171 @@ export const AICoach = () => {
         
         // Day Performance
         const dailyStats = Array(7).fill(0);
-        tasks.filter(t => t.completed && t.completedAt).forEach(t => {
-            const d = getDay(new Date(t.completedAt!));
-            dailyStats[d]++;
+        focusSessions.filter(s => new Date(s.timestamp) >= mainStart && new Date(s.timestamp) <= effectiveEnd).forEach(s => {
+            const d = getDay(new Date(s.timestamp));
+            dailyStats[d] += s.duration;
         });
-        const peakDay = dailyStats.indexOf(Math.max(...dailyStats));
+        const peakDayIdx = dailyStats.indexOf(Math.max(...dailyStats));
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        // Missed tasks pattern
-        const missedTasks = tasks.filter(t => !t.completed && t.deadline && new Date(t.deadline) < now);
-        const missedEvening = missedTasks.filter(t => t.deadline && getHours(new Date(t.deadline)) >= 17).length;
-        const missedPercent = missedTasks.length > 0 ? (missedEvening / missedTasks.length) * 100 : 0;
+        // Focus Streak Calculation
+        const sortedUniqueDays = Array.from(new Set(
+            focusSessions.map(s => format(new Date(s.timestamp), 'yyyy-MM-dd'))
+        )).sort().reverse();
+        
+        let streak = 0;
+        if (sortedUniqueDays.length > 0) {
+            const today = format(new Date(), 'yyyy-MM-dd');
+            const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+            
+            if (sortedUniqueDays[0] === today || sortedUniqueDays[0] === yesterday) {
+                let current = new Date(sortedUniqueDays[0]);
+                for (const dayStr of sortedUniqueDays) {
+                    if (format(new Date(dayStr), 'yyyy-MM-dd') === format(current, 'yyyy-MM-dd')) {
+                        streak++;
+                        current = subDays(current, 1);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
 
         return {
             taskIncr,
             focusIncr,
             peakHour,
-            peakDay: dayNames[peakDay],
-            thisWeekTasks: thisWeekTasks.length,
-            thisWeekFocus,
-            missedTasks: missedTasks.length,
-            missedEveningPercent: Math.round(missedPercent),
-            productivityScore
+            peakDay: dayNames[peakDayIdx],
+            mainStats,
+            weeklyStats,
+            focusStreak: streak
         };
-    }, [tasks, focusSessions, productivityScore]);
+    }, [tasks, focusSessions, viewDate, timeRange]);
 
     // ── Generate Dynamic Insights ───────────────────────────────────────────
     const insights = useMemo(() => {
         const list = [];
 
-        // 1. Focus Trend
-        if (analysis.focusIncr > 0) {
+        // 1. Focus Trend - Dynamic based on magnitude
+        if (analysis.focusIncr > 20) {
             list.push({
                 icon: TrendingUp,
-                title: 'Momentum Building',
-                text: `Your focus time increased by ${analysis.focusIncr}% compared to last week. You're hitting your stride!`,
+                title: 'Exceptional Momentum',
+                text: `You've surged by ${analysis.focusIncr}% in focus time! This intense deep work is your unique competitive advantage.`,
+                color: '#10b981'
+            });
+        } else if (analysis.focusIncr > 0) {
+            list.push({
+                icon: TrendingUp,
+                title: 'Steady Progress',
+                text: `A ${analysis.focusIncr}% increase in focus shows you're successfully refining your concentration habits.`,
                 color: '#10b981'
             });
         }
 
-        // 2. Peak Productivity
-        if (analysis.peakHour !== -1 && analysis.thisWeekFocus > 0) {
-            const timeStr = analysis.peakHour > 12 ? `${analysis.peakHour - 12} PM` : `${analysis.peakHour} AM`;
+        // 2. Task Completion Velocity
+        if (analysis.taskIncr > 50) {
             list.push({
                 icon: Zap,
-                title: 'Prime Time Detected',
-                text: `You are most productive around ${timeStr}. Consider scheduling your hardest tasks then.`,
+                title: 'Task Crusher',
+                text: `Your completion rate exploded by ${analysis.taskIncr}%! You're operating at peak efficiency right now.`,
                 color: '#f59e0b'
             });
         }
 
-        // 3. Peak Day
-        if (analysis.thisWeekTasks > 0) {
+        // 3. Peak Productivity - Personalized time-of-day
+        if (analysis.peakHour !== -1 && analysis.mainStats.focusMins > 0) {
+            const isMorning = analysis.peakHour < 12;
+            const timeStr = analysis.peakHour % 12 || 12;
+            const period = analysis.peakHour >= 12 ? 'PM' : 'AM';
+            
             list.push({
-                icon: Calendar,
-                title: 'Golden Day',
-                text: `${analysis.peakDay}s seem to be your most effective days for finishing work.`,
+                icon: Clock,
+                title: isMorning ? 'Morning Warrior' : 'Evening Powerhouse',
+                text: `Your biological prime starts around ${timeStr} ${period}. Protect this window for your "Deep Work" sessions.`,
                 color: '#6366f1'
             });
         }
 
-        // 4. Evening Pattern (Missed tasks)
-        if (analysis.missedEveningPercent > 40 && analysis.missedTasks > 1) {
+        // 4. Gold Day Analysis
+        if (analysis.mainStats.taskCount > 0) {
             list.push({
-                icon: AlertCircle,
-                title: 'Scheduling Conflict',
-                text: `You miss ${analysis.missedEveningPercent}% of tasks in the evening. Consider shifting your workload to earlier in the day.`,
-                color: '#ef4444'
-            });
-        } else if (analysis.missedTasks > 5) {
-            list.push({
-                icon: AlertCircle,
-                title: 'High Workload',
-                text: 'You have a high number of missed tasks lately. It might be time to prune your list or renegotiate deadlines.',
-                color: '#ef4444'
+                icon: Award,
+                title: `${analysis.peakDay} Specialist`,
+                text: `Statistically, you are most lethal on ${analysis.peakDay}s. Schedule your most complex projects for these days.`,
+                color: '#ec4899'
             });
         }
 
-        // Default if list is short
-        if (list.length < 2) {
+        // 5. Warning Patterns - Fatigue or Overload
+        if (analysis.mainStats.missed > 8) {
+            list.push({
+                icon: AlertCircle,
+                title: 'Burnout Warning',
+                text: `You have ${analysis.mainStats.missed} missed tasks. Your current workload might be unsustainable. Time to prune or delegate.`,
+                color: '#ef4444'
+            });
+        } else if (analysis.mainStats.score < 50 && analysis.mainStats.missed > 2) {
             list.push({
                 icon: Lightbulb,
-                title: 'Pro Tip',
-                text: 'Consistency is key. Try to maintain a similar focus schedule every day.',
+                title: 'Productivity Dip',
+                text: `Your completion rate is lower than usual. Try breaking your tasks into smaller, manageable chunks.`,
+                color: '#f59e0b'
+            });
+        }
+
+        // Fallback for new users
+        if (list.length === 0) {
+            list.push({
+                icon: Brain,
+                title: 'Analyzing baseline...',
+                text: 'I am observing your work patterns to build your personalized productivity profile. Keep focusing!',
                 color: '#8b5cf6'
             });
         }
 
-        return list;
+        return list.slice(0, 3);
     }, [analysis]);
 
     // ── Generate Suggestions ───────────────────────────────────────────────
     const suggestions = useMemo(() => {
         const list = [];
 
-        if (analysis.peakHour !== -1) {
+        // 1. Dynamic Energy Blocking
+        if (analysis.peakHour !== -1 && analysis.mainStats.focusMins > 0) {
+            const h = analysis.peakHour;
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
             list.push({
-                title: 'Schedule Deep Work',
-                text: `You have high energy at ${analysis.peakHour}:00. Block this time for high-intensity work.`,
-                action: 'Set Focus Block'
+                title: 'High-Intensity Block',
+                text: `Your focus peaks at ${displayH}${period}. Lock your calendar for 90 mins then to tackle your hardest task.`,
+                action: 'Set Focus Goal'
             });
         }
 
-        if (analysis.missedTasks > 0) {
+        // 2. Overload Mitigation
+        if (analysis.mainStats.missed > 0) {
             list.push({
-                title: 'Workload Redistribution',
-                text: 'You have a few overdue tasks. Consider breaking them into smaller steps for easier completion.',
+                title: 'Backlog Pruning',
+                text: `You have ${analysis.mainStats.missed} overdue items. Pruning the bottom 20% would instantly reduce your mental load.`,
                 action: 'Review Overdue'
             });
         }
 
-        list.push({
-            title: 'Weekly Ritual',
-            text: 'It looks like your weekend productivity drops. Try a light planning session on Sundays.',
-            action: 'Plan Weekend'
-        });
+        // 3. Momentum Maintenance
+        if (analysis.taskIncr < 0) {
+            list.push({
+                title: 'Reignite Momentum',
+                text: 'Your completion rate is down this week. Try the "5-Minute Rule" for your next task.',
+                action: 'Start 5m Focus'
+            });
+        } else {
+            list.push({
+                title: 'Performance Optimization',
+                text: `You're dominant on ${analysis.peakDay}s. Consider stacking your most creative work then.`,
+                action: 'Optimize Schedule'
+            });
+        }
 
         return list;
     }, [analysis]);
@@ -241,13 +331,13 @@ export const AICoach = () => {
                     <h3 className={styles.sectionTitle} style={{ fontSize: '1.25rem' }}>Key Productivity Highlights</h3>
                 </div>
                 <div className={styles.highlightsGrid}>
-                    <HighlightItem label="Best Focus Day" value={analysis.thisWeekTasks > 0 ? analysis.peakDay : 'N/A'} />
+                    <HighlightItem label="Best Focus Day" value={analysis.mainStats.taskCount > 0 ? analysis.peakDay : 'N/A'} />
                     <HighlightItem 
                         label="Best Focus Hour" 
-                        value={analysis.thisWeekFocus > 0 && analysis.peakHour !== -1 ? `${analysis.peakHour % 12 || 12}${analysis.peakHour >= 12 ? ' PM' : ' AM'}` : 'N/A'} 
+                        value={analysis.mainStats.focusMins > 0 && analysis.peakHour !== -1 ? `${analysis.peakHour % 12 || 12}${analysis.peakHour >= 12 ? ' PM' : ' AM'}` : 'N/A'} 
                     />
-                    <HighlightItem label="Focus Streak" value={analysis.thisWeekFocus > 0 ? "5 Days" : "0 Days"} />
-                    <HighlightItem label="Efficiency" value={`${analysis.productivityScore}%`} />
+                    <HighlightItem label="Focus Streak" value={`${analysis.focusStreak} Days`} />
+                    <HighlightItem label="Efficiency" value={`${analysis.mainStats.score}%`} />
                 </div>
             </div>
 
@@ -270,14 +360,14 @@ export const AICoach = () => {
                     </div>
                     
                     <div className={styles.reportStats}>
-                        <ReportStat label="Focus Minutes" value={`${analysis.thisWeekFocus}m`} />
-                        <ReportStat label="Tasks Completed" value={analysis.thisWeekTasks.toString()} />
-                        <ReportStat label="Tasks Missed" value={analysis.missedTasks.toString()} />
-                        <ReportStat label="Prod. Score" value={`${analysis.productivityScore}%`} />
+                        <ReportStat label="Focus Minutes" value={`${analysis.weeklyStats.focusMins}m`} />
+                        <ReportStat label="Tasks Completed" value={analysis.weeklyStats.taskCount.toString()} />
+                        <ReportStat label="Tasks Missed" value={analysis.weeklyStats.missed.toString()} />
+                        <ReportStat label="Prod. Score" value={`${analysis.weeklyStats.score}%`} />
                     </div>
 
                     <p className={styles.reportFooter}>
-                        &quot;This week you completed {analysis.thisWeekTasks} tasks and focused for {Math.round(analysis.thisWeekFocus / 60)} hours. 
+                        &quot;This week you completed {analysis.weeklyStats.taskCount} tasks and focused for {Math.round(analysis.weeklyStats.focusMins / 60)} hours. 
                         Your productivity {analysis.taskIncr >= 0 ? 'improved' : 'changed'} by {Math.abs(analysis.taskIncr)}% compared to last week.&quot;
                     </p>
 

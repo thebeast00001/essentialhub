@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Flame,
@@ -14,54 +14,57 @@ import {
     Trash2,
     Target
 } from 'lucide-react';
-import { useTaskStore, Habit } from '@/store/useTaskStore';
+import { useTaskStore, Habit, getLocalDateStr } from '@/store/useTaskStore';
 import { Button } from '@/components/ui/UIComponents';
 import styles from './Habits.module.css';
 import { clsx } from 'clsx';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns';
+import { useTheme } from 'next-themes';
 
-// Helper: Generates a pseudo-random heatmap pattern consistent with the habit ID
-const generateMonthCalendar = (streak: number, completedToday: boolean) => {
-    const today = new Date();
-    const start = startOfMonth(today);
-    const end = endOfMonth(today);
+// Helper: Generates a full month calendar with completion status for a specific date
+const generateMonthCalendar = (viewDate: Date, completedDates: string[] = []) => {
+    const start = startOfMonth(viewDate);
+    const end = endOfMonth(viewDate);
     const days = eachDayOfInterval({ start, end });
     
     const startDayOfWeek = getDay(start); 
-    const calendarDays: ({ date: Date; isStreakDay: boolean; isToday: boolean } | null)[] = [];
+    const calendarDays: ({ date: Date; isStreakDay: boolean; isToday: boolean; dateStr: string; isFuture: boolean } | null)[] = [];
     
     for (let i = 0; i < startDayOfWeek; i++) {
         calendarDays.push(null);
     }
     
+    const datesSet = new Set(completedDates);
+    const todayStr = getLocalDateStr();
+    
     days.forEach(date => {
-        const todayAtMidnight = new Date(today);
-        todayAtMidnight.setHours(0, 0, 0, 0);
-        const dateAtMidnight = new Date(date);
-        dateAtMidnight.setHours(0, 0, 0, 0);
-        
-        const diffTime = todayAtMidnight.getTime() - dateAtMidnight.getTime();
-        const daysAgo = Math.round(diffTime / (1000 * 60 * 60 * 24));
-        
-        let isStreakDay = false;
-        if (daysAgo === 0) {
-            isStreakDay = completedToday;
-        } else if (daysAgo > 0) {
-            isStreakDay = completedToday ? daysAgo < streak : daysAgo <= streak && streak > 0;
-        }
+        const dateStr = getLocalDateStr(date);
+        const isToday = dateStr === todayStr;
+        const isFuture = dateStr > todayStr;
         
         calendarDays.push({
             date,
-            isStreakDay,
-            isToday: daysAgo === 0
+            isStreakDay: datesSet.has(dateStr),
+            isToday,
+            dateStr,
+            isFuture
         });
     });
     
-    return { calendarDays, monthName: format(today, 'MMMM yyyy') };
+    return { calendarDays, monthName: format(viewDate, 'MMMM yyyy') };
 };
 
 export default function HabitsPage() {
+    const { theme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    
     const { habits, toggleHabit, deleteHabit, addHabit } = useTaskStore();
+    
+    const [viewDate, setViewDate] = useState(new Date());
     
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newHabitTitle, setNewHabitTitle] = useState('');
@@ -82,6 +85,8 @@ export default function HabitsPage() {
         setIsAddModalOpen(false);
     };
 
+    if (!mounted) return null;
+
     return (
         <motion.div
             className={styles.container}
@@ -91,7 +96,7 @@ export default function HabitsPage() {
         >
             <header className={styles.header}>
                 <div className={styles.titleArea}>
-                    <h1 className="text-gradient">Daily Rituals</h1>
+                    <h1 className="text-gradient">Daily Habits</h1>
                     <p className={styles.subtitle}>Build consistency, unlock potential.</p>
                 </div>
 
@@ -114,36 +119,42 @@ export default function HabitsPage() {
             </header>
 
             <div className={styles.ritualGrid}>
-                {habits.map((habit) => {
-                    const { calendarDays, monthName } = generateMonthCalendar(habit.streak, habit.completedToday);
-
+                {habits.map((habit, index) => {
+                    const { calendarDays, monthName } = generateMonthCalendar(viewDate, habit.completedDates);
+                    
                     return (
-                        <motion.div
+                        <motion.div 
                             key={habit.id}
-                            className={clsx('glass-surface', styles.habitCard)}
+                            className={clsx(
+                                'glass-surface', 
+                                styles.habitCard,
+                                mounted && theme === 'oceanic' && `theme-pastel-${(index % 4) + 1}`
+                            )}
+                            layout
                             whileHover={{ y: -5 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                         >
                             <div className={styles.habitHeader}>
-                                <div className={styles.habitIcon}>
-                                    <Target size={20} />
-                                </div>
                                 <div className={styles.habitInfo}>
-                                    <h3>{habit.title}</h3>
-                                    <div className={styles.streakInfo}>
-                                        <Flame size={14} className={styles.flameIcon} />
-                                        <span>{habit.streak} day streak</span>
+                                    <div className={styles.habitIcon}>
+                                        <Target size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className={styles.habitTitle}>{habit.title}</h3>
+                                        <div className={styles.streakInfo}>
+                                            <Flame size={14} className={styles.flameIcon} />
+                                            <span>{habit.streak} day streak</span>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                {/* Context Menu */}
-                                <div className={styles.menuContainer}>
+                                <div className={styles.habitActions}>
                                     <button 
                                         className={styles.moreBtn} 
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setActiveMenu(activeMenu === habit.id ? null : habit.id);
                                         }}
+                                        title="Menu"
                                     >
                                         <MoreVertical size={16} />
                                     </button>
@@ -165,7 +176,7 @@ export default function HabitsPage() {
                                                     }}
                                                 >
                                                     <Trash2 size={16} />
-                                                    Discard Ritual
+                                                    Discard Habit
                                                 </button>
                                             </motion.div>
                                         )}
@@ -175,7 +186,14 @@ export default function HabitsPage() {
 
                             {/* Monthly Calendar */}
                             <div className={styles.calendarWrapper}>
-                                <div className={styles.calendarHeader}>{monthName.toUpperCase()}</div>
+                                <div className={styles.calendarHeader}>
+                                    <span className={styles.monthLabel}>{monthName.toUpperCase()}</span>
+                                    <div className={styles.calendarNav}>
+                                        <button onClick={() => setViewDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} className={styles.navBtn}>←</button>
+                                        <button onClick={() => setViewDate(new Date())} className={styles.navBtn}>T</button>
+                                        <button onClick={() => setViewDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} className={styles.navBtn}>→</button>
+                                    </div>
+                                </div>
                                 <div className={styles.calendarGrid}>
                                     {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
                                         <div key={`head-${idx}`} className={styles.weekday}>{d}</div>
@@ -183,16 +201,23 @@ export default function HabitsPage() {
                                     {calendarDays.map((dayObj, idx) => {
                                         if (!dayObj) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
                                         return (
-                                            <div 
-                                                key={dayObj.date.toISOString()}
+                                            <motion.button 
+                                                key={dayObj.dateStr}
+                                                whileHover={!dayObj.isFuture ? { scale: 1.15 } : {}}
+                                                whileTap={!dayObj.isFuture ? { scale: 0.9 } : {}}
+                                                onClick={() => !dayObj.isFuture && toggleHabit(habit.id, dayObj.dateStr)}
+                                                disabled={dayObj.isFuture}
                                                 className={clsx(
                                                     styles.dayCell, 
                                                     dayObj.isStreakDay && styles.streakDay,
-                                                    dayObj.isToday && styles.todayCell
+                                                    dayObj.isToday && styles.todayCell,
+                                                    !dayObj.isFuture && styles.clickableDay,
+                                                    dayObj.isFuture && styles.futureDay
                                                 )}
+                                                title={dayObj.isFuture ? 'Future Date' : `${dayObj.isStreakDay ? 'Marked' : 'Unmarked'} on ${format(dayObj.date, 'MMM d')}`}
                                             >
                                                 {format(dayObj.date, 'd')}
-                                            </div>
+                                            </motion.button>
                                         );
                                     })}
                                 </div>
@@ -205,7 +230,7 @@ export default function HabitsPage() {
                                 className={styles.completeBtn}
                             >
                                 {habit.completedToday ? (
-                                    <><CheckCircle2 size={18} /> Ritual Complete</>
+                                    <><CheckCircle2 size={18} /> Habit Complete</>
                                 ) : (
                                     'Mark Complete'
                                 )}
@@ -218,7 +243,7 @@ export default function HabitsPage() {
                     <div className={styles.addIcon}>
                         <Plus size={32} />
                     </div>
-                    <span>Create New Ritual</span>
+                    <span>Create New Habit</span>
                 </button>
             </div>
 
@@ -236,12 +261,12 @@ export default function HabitsPage() {
                                 <X size={20} />
                             </button>
                             
-                            <h2 className={styles.modalTitle}>New Daily Ritual</h2>
+                            <h2 className={styles.modalTitle}>New Daily Habit</h2>
                             <p className={styles.modalSubtitle}>What consistent action will step you closer to your goals?</p>
                             
                             <form onSubmit={handleAddSubmit} className={styles.modalForm}>
                                 <div className={styles.inputGroup}>
-                                    <label>Ritual Name</label>
+                                    <label>Habit Name</label>
                                     <input 
                                         type="text" 
                                         placeholder="e.g. Read 20 pages, Meditate, Drink water..." 
@@ -251,7 +276,7 @@ export default function HabitsPage() {
                                     />
                                 </div>
                                 <Button type="submit" variant="primary" fullWidth className={styles.modalSubmit}>
-                                    Forge Ritual
+                                    Forge Habit
                                 </Button>
                             </form>
                         </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     DndContext,
     closestCenter,
@@ -25,12 +25,21 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/UIComponents';
 import styles from './TaskCommandPanel.module.css';
 import { clsx } from 'clsx';
+import { useTheme } from 'next-themes';
 
 interface SortableTaskItemProps {
     task: Task;
+    index: number;
 }
 
-const SortableTaskItem: React.FC<SortableTaskItemProps> = ({ task }) => {
+const SortableTaskItem: React.FC<SortableTaskItemProps> = ({ task, index }) => {
+    const { theme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { toggleTask, deleteTask, updateTask } = useTaskStore();
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(task.title);
@@ -69,7 +78,8 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({ task }) => {
                     'glass-surface',
                     styles.taskCard,
                     task.completed && styles.completed,
-                    isMissed && styles.missedTask
+                    isMissed && styles.missedTask,
+                    mounted && theme === 'oceanic' && `theme-pastel-${(index % 4) + 1}`
                 )}
                 layout
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -209,8 +219,8 @@ export const TaskCommandPanel = () => {
                     >
                         <div className={styles.list}>
                             <AnimatePresence mode="popLayout">
-                                {filteredTasks.map((task) => (
-                                    <SortableTaskItem key={task.id} task={task} />
+                                {filteredTasks.map((task, idx) => (
+                                    <SortableTaskItem key={task.id} task={task} index={idx} />
                                 ))}
                             </AnimatePresence>
                             {filteredTasks.length === 0 && (

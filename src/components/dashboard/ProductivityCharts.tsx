@@ -16,26 +16,32 @@ import {
 import { useTaskStore } from '@/store/useTaskStore';
 import styles from './ProductivityCharts.module.css';
 
-const MOCK_LINE_DATA = [
-    { name: 'Mon', tasks: 4, productivity: 60 },
-    { name: 'Tue', tasks: 7, productivity: 85 },
-    { name: 'Wed', tasks: 5, productivity: 72 },
-    { name: 'Thu', tasks: 8, productivity: 90 },
-    { name: 'Fri', tasks: 6, productivity: 78 },
-    { name: 'Sat', tasks: 3, productivity: 40 },
-    { name: 'Sun', tasks: 2, productivity: 30 },
-];
-
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
 export const ProductivityCharts = () => {
-    const tasks = useTaskStore((state) => state.tasks);
+    const { tasks, focusSessions } = useTaskStore();
 
-    const categoryData = [
-        { name: 'Design', value: tasks.filter(t => t.tags.includes('Design')).length },
-        { name: 'Development', value: tasks.filter(t => t.tags.includes('Development')).length },
-        { name: 'Planning', value: tasks.filter(t => t.tags.includes('Planning') || t.tags.includes('General')).length },
-    ].filter(d => d.value > 0);
+    const efficiencyData = React.useMemo(() => {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return days.map((day, i) => {
+            const sessions = focusSessions.filter(s => new Date(s.timestamp).getDay() === i);
+            const focus = sessions.reduce((acc, s) => acc + s.duration, 0);
+            const compTasks = tasks.filter(t => t.completed && t.completedAt && new Date(t.completedAt).getDay() === i).length;
+            return {
+                name: day,
+                tasks: compTasks,
+                productivity: Math.min(100, (focus / 120) * 100)
+            };
+        });
+    }, [tasks, focusSessions]);
+
+    const categoryData = React.useMemo(() => {
+        const categories = ['Design', 'Development', 'Planning', 'General'];
+        return categories.map(cat => ({
+            name: cat,
+            value: tasks.filter(t => t.tags.includes(cat)).length
+        })).filter(d => d.value > 0);
+    }, [tasks]);
 
     return (
         <div className={styles.container}>
@@ -43,7 +49,7 @@ export const ProductivityCharts = () => {
                 <h3 className={styles.chartTitle}>Efficiency Trend</h3>
                 <div style={{ width: '100%', height: 250 }}>
                     <ResponsiveContainer>
-                        <AreaChart data={MOCK_LINE_DATA}>
+                        <AreaChart data={efficiencyData}>
                             <defs>
                                 <linearGradient id="colorProd" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />

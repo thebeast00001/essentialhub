@@ -3,61 +3,43 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
 import { CommandPalette } from '../ui/CommandPalette';
-import { usePathname } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { usePathname, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+
+
 import { useTaskStore } from '@/store/useTaskStore';
 import styles from './Layout.module.css';
-import SplashScreen from './SplashScreen';
 
 interface AppLayoutProps {
     children: React.ReactNode;
 }
 
+import { useAuth } from '@/hooks/useAuth';
+
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const pathname = usePathname();
-    const { user, isLoaded } = useUser();
-    const { setUserId, syncProfile } = useTaskStore();
-    const isAuthRoute = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
+    const { user, loading } = useAuth();
+    const router = useRouter();
+    const isAuthRoute = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/auth/callback');
     
-    const [showSplash, setShowSplash] = React.useState(false);
-
     React.useEffect(() => {
-        const hasSeenSplash = sessionStorage.getItem('essential_splash_seen');
-        if (!hasSeenSplash && !isAuthRoute) {
-            setShowSplash(true);
+        if (!loading && !user && !isAuthRoute) {
+            router.push('/sign-in');
         }
-    }, [isAuthRoute]);
+    }, [user, loading, isAuthRoute, router]);
 
+    const { isTimerRunning, tickTimer } = useTaskStore();
+    
     React.useEffect(() => {
-        if (isLoaded && user?.id) {
-            setUserId(user.id);
-            syncProfile({
-                email: user.primaryEmailAddress?.emailAddress || '',
-                username: user.username || '',
-                full_name: user.fullName || '',
-                avatar_url: user.imageUrl || ''
-            });
-
-            // Heartbeat: Update presence every 2 minutes
-            const interval = setInterval(() => {
-                syncProfile({
-                    email: user.primaryEmailAddress?.emailAddress || '',
-                    username: user.username || '',
-                    full_name: user.fullName || '',
-                    avatar_url: user.imageUrl || ''
-                });
-            }, 120000);
-
-            return () => clearInterval(interval);
+        let interval: NodeJS.Timeout;
+        if (isTimerRunning) {
+            interval = setInterval(() => {
+                tickTimer();
+            }, 1000);
         }
-    }, [isLoaded, user, setUserId, syncProfile]);
+        return () => clearInterval(interval);
+    }, [isTimerRunning, tickTimer]);
 
-    if (showSplash) {
-        return <SplashScreen onComplete={() => {
-            sessionStorage.setItem('essential_splash_seen', 'true');
-            setShowSplash(false);
-        }} />;
-    }
 
     if (isAuthRoute) {
         return <>{children}</>;
@@ -68,9 +50,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <Sidebar />
             <CommandPalette />
             <main className={styles.main}>
-                <div className={styles.content}>
+                <motion.div 
+                    className={styles.content}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: loading ? 0 : 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
                     {children}
-                </div>
+                </motion.div>
             </main>
         </div>
     );

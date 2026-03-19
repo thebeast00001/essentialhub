@@ -28,22 +28,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, initialDa
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        deadline: '',
+        scheduled_start: '',
+        scheduled_end: '',
         priority: 'medium' as Priority,
         tags: [] as string[],
     });
 
     React.useEffect(() => {
         if (isOpen) {
-            if (initialDate) {
-                const pad = (n: number) => n.toString().padStart(2, '0');
-                const d = initialDate;
-                // Defaulting to 12:00 PM if it's just a newly clicked day, or keep actual time if passed
-                const str = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T12:00`;
-                setFormData(prev => ({ ...prev, deadline: str }));
-            } else {
-                setFormData(prev => ({ ...prev, deadline: '' }));
-            }
+            const pad = (n: number) => n.toString().padStart(2, '0');
+            const d = initialDate ? new Date(initialDate) : new Date();
+            
+            // Default to hour start
+            d.setMinutes(0, 0, 0);
+            const startStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+            
+            // Default 1 hour duration
+            const dEnd = new Date(d);
+            dEnd.setHours(dEnd.getHours() + 1);
+            const endStr = `${dEnd.getFullYear()}-${pad(dEnd.getMonth()+1)}-${pad(dEnd.getDate())}T${pad(dEnd.getHours())}:00`;
+
+            setFormData({
+                title: '',
+                description: '',
+                scheduled_start: startStr,
+                scheduled_end: endStr,
+                priority: 'medium',
+                tags: [],
+            });
         }
     }, [isOpen, initialDate]);
 
@@ -53,17 +65,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, initialDa
 
         addTask({
             ...formData,
+            deadline: formData.scheduled_end, // Deadline remains the end time
             subtasks: [],
             tags: formData.tags.length > 0 ? formData.tags : ['General']
         });
-
-        setFormData({
-            title: '',
-            description: '',
-            deadline: '',
-            priority: 'medium',
-            tags: [],
-        });
+        
         onClose();
     };
 
@@ -134,14 +140,27 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, initialDa
                                 <div className={styles.metaGrid}>
                                     <div className={styles.inputGroup}>
                                         <div className={styles.labelWithIcon}>
-                                            <Calendar size={16} />
-                                            <span>Deadline</span>
+                                            <Clock size={16} />
+                                            <span>Starts</span>
                                         </div>
                                         <input
                                             type="datetime-local"
                                             className={styles.metaInput}
-                                            value={formData.deadline}
-                                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                                            value={formData.scheduled_start}
+                                            onChange={(e) => setFormData({ ...formData, scheduled_start: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className={styles.inputGroup}>
+                                        <div className={styles.labelWithIcon}>
+                                            <Calendar size={16} />
+                                            <span>Ends</span>
+                                        </div>
+                                        <input
+                                            type="datetime-local"
+                                            className={styles.metaInput}
+                                            value={formData.scheduled_end}
+                                            onChange={(e) => setFormData({ ...formData, scheduled_end: e.target.value })}
                                         />
                                     </div>
 

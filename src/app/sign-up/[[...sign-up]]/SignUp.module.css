@@ -1,0 +1,219 @@
+/* Page Wrapper */
+.page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+    font-family: var(--font-sans);
+}
+
+/* Auth Card */
+.card {
+    width: 1000px;
+    height: 650px;
+    background: rgba(10, 10, 10, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    display: flex;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+/* Left Panel */
+.leftPanel {
+    flex: 1.2;
+    position: relative;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.leftPanel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+.leftContent {
+    position: relative;
+    z-index: 2;
+}
+
+.logoArea {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 48px;
+}
+
+.logoIcon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoText {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    font-family: var(--font-display);
+}
+
+.heroTitle {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+    margin-bottom: 24px;
+    letter-spacing: -0.04em;
+}
+
+.heroSub {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.6;
+    margin-bottom: 48px;
+    max-width: 320px;
+}
+
+/* Step Cards */
+.stepCards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stepCard {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.activeStep {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stepNum {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.activeStep .stepNum {
+    background: #ffffff;
+    color: #000000;
+}
+
+.stepInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stepTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.stepDesc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* Right Panel */
+.rightPanel {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 40px;
+}
+
+.rightContentWrapper {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.customHeader {
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+.customTitle {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+}
+
+.customSub {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+    .card {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+    .leftPanel {
+        display: none;
+    }
+    .rightPanel {
+        background: #000;
+    }
+}
+
+
+/* Hide Username Field from Clerk SignUp (assigned automatically) */
+:global(.cl-formFieldRow__username) {
+    display: none !important;
+}
