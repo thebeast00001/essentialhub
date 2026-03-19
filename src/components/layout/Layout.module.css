@@ -2,6 +2,7 @@
     display: flex;
     min-height: 100vh;
     background: var(--bg-deep);
+    width: 100%;
 }
 
 .main {
@@ -12,6 +13,7 @@
     flex-direction: column;
     transition: margin-left 0.3s ease;
     width: 100%;
+    max-width: 100%;
 }
 
 .content {
@@ -25,9 +27,7 @@
 /* Mobile Header */
 .mobileHeader {
     display: none;
-    position: sticky;
-    top: 0;
-    z-index: 900;
+    z-index: 1100; /* Above sidebar */
     width: 100%;
     padding: 16px 20px;
     background: var(--bg-surface);
@@ -70,15 +70,32 @@
 }
 
 @media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        overflow-x: hidden;
+    }
+
     .main {
         margin-left: 0;
+        width: 100vw;
+        max-width: 100%;
     }
 
     .content {
-        padding: 24px 16px;
+        padding: 20px 16px;
+        width: 100%;
     }
 
     .mobileHeader {
         display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
     }
-}
+
+    .main {
+        padding-top: 72px; /* Fixed header offset */
+    }
+}
+
+

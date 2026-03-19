@@ -318,10 +318,13 @@
 
 @media (max-width: 768px) {
     .sidebar {
+        position: fixed;
         transform: translateX(-100%);
-        width: 280px !important;
+        width: 300px !important;
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         padding: 32px 16px !important;
+        z-index: 1200; /* Above everything */
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
     }
 
     .sidebarMobileOpen {
@@ -330,6 +333,7 @@
 
     .overlayVisible {
         display: block;
+        z-index: 1150;
     }
 
     .logoText, .groupLabel, .navItem span, .themeToggleBtn span, .userMeta, .logoutMini, .momentumBar { 

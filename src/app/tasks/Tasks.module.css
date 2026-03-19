@@ -575,9 +575,17 @@
     border: 1px solid var(--border-glass);
     border-radius: 18px;
     width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
     backdrop-filter: blur(12px);
     box-shadow: var(--shadow-sm);
     margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.timeFrameBar::-webkit-scrollbar {
+    display: none;
 }
 
 .timeFrameBtn {
@@ -597,7 +605,9 @@
     transition: color 0.2s ease;
     overflow: hidden;
     white-space: nowrap;
+    flex-shrink: 0;
 }
+
 
 .timeFrameBtn:hover:not(.timeFrameActive) {
     color: var(--text-primary);

@@ -28,6 +28,73 @@
     border-right: none;
 }
 
+@media (max-width: 1024px) {
+    .sidebar { width: 0; border-right: none; }
+    .sidebarContent { display: none; }
+    .logoSection { display: none; }
+}
+
+@media (max-width: 768px) {
+    .mainHeader {
+        height: auto;
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .headerLeft, .headerRight {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .searchBox {
+        display: none;
+    }
+    
+    .dateRange {
+        font-size: 1.1rem;
+    }
+    
+    .weekDayHeader {
+        padding: 8px 0;
+    }
+    
+    .dayNumber {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .timeColumnSpacer, .timeLines {
+        width: 48px;
+    }
+    
+    .rowLine {
+        left: 48px;
+    }
+
+    .yearView {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 16px;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .yearView {
+        grid-template-columns: 1fr;
+    }
+    
+    .headerActions {
+        gap: 8px;
+    }
+    
+    .switcherBtn {
+        padding: 6px 8px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
 .sidebarContent {
     padding: 16px;
     display: flex;

@@ -508,23 +508,74 @@
 
 @media (max-width: 900px) {
     .dashboardContainer {
-        margin: 20px;
+        margin: 10px;
         border-radius: 24px;
+        padding: 16px;
     }
     .bentoGrid {
         grid-template-columns: 1fr;
+        padding: 24px;
+        border-radius: 24px;
     }
     .statusCard {
         grid-column: 1;
         grid-row: auto;
+        gap: 20px;
     }
     .topHeader {
         flex-direction: column;
         gap: 20px;
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
     }
     .pillNav {
         width: 100%;
         overflow-x: auto;
+        justify-content: flex-start;
+        padding: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .pillNav::-webkit-scrollbar { display: none; }
+    
+    .profileCard {
+        justify-content: center;
+    }
+    
+    .profileContent {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .tabGrid, .privacySection {
+        grid-template-columns: 1fr;
+    }
+    
+    .brandArea {
+        flex-direction: column;
+    }
+    
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+    
+    .username {
+        font-size: 1.25rem;
     }
 }
+
+@media (max-width: 480px) {
+    .avatarContainer {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .pillTab {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+    
+    .statValue {
+        font-size: 1rem;
+    }
+}
+
