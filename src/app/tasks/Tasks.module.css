@@ -439,6 +439,48 @@
     }
 }
 
+@media (max-width: 768px) {
+    .pageTitle {
+        font-size: 2.25rem;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+    
+    .stats {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    
+    .statItem {
+        flex-shrink: 0;
+    }
+    
+    .addSection {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quickAdd {
+        width: 100%;
+    }
+    
+    .fullAddBtn {
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .timeFrameBar {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
+
 /* ─── AI Auto-Pilot Section ────────────────────────── */
 .autoPilotSection {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);

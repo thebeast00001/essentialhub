@@ -16,19 +16,39 @@
     padding: 40px;
 }
 
-@media (max-width: 1200px) {
-    .layout {
-        grid-template-columns: 1fr 340px;
-    }
-    .leftCol { display: none; }
-}
-
 @media (max-width: 900px) {
     .layout {
         grid-template-columns: 1fr;
+        padding: 24px 16px;
     }
     .rightCol { display: none; }
+    
+    .heroTitle {
+        font-size: 2rem;
+    }
+    
+    .pageHero {
+        margin-bottom: 24px;
+    }
+
+    .composerHeader {
+        padding: 16px;
+    }
+
+    .composerActions {
+        padding: 12px 16px;
+    }
+
+    .mediaBtns {
+        gap: 8px;
+    }
+    
+    .mediaBtn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
 }
+
 
 /* Cards Base */
 .profileCard, .navMenu, .composerCard, .activityCard, .suggestionsCard, .postCard {

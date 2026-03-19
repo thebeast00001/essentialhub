@@ -609,6 +609,61 @@
     }
 }
 
+@media (max-width: 480px) {
+    .clockWrapper, .radioClockWrapper {
+        transform: scale(0.6) !important;
+        margin-top: -160px !important;
+        margin-bottom: -160px !important;
+    }
+    
+    .shell {
+        padding: 16px;
+    }
+    
+    .headerStats {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .statPill {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .controls {
+        gap: 24px;
+        margin-top: 20px;
+    }
+    
+    .playBtn {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .styleSwitcher {
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        justify-content: center;
+    }
+    
+    .exitBtn {
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .timerNumber {
+        font-size: 2.5rem;
+    }
+    
+    .bigTime {
+        font-size: 3rem;
+    }
+}
+
 @media (max-height: 950px) {
     .clockWrapper {
         transform: scale(0.8);

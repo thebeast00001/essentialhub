@@ -677,8 +677,68 @@
   .sidebarSection { display: none; }
 }
 
-@media (max-width: 600px) {
-  .greetingTitle { font-size: 2rem; }
-  .topBar { flex-direction: column; align-items: stretch; gap: 20px; }
-  .searchWrapper { max-width: none; }
+@media (max-width: 768px) {
+  .greetingTitle { 
+    font-size: 2.25rem; 
+    line-height: 1.1;
+  }
+  
+  .heroSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .heroActions {
+    width: 100%;
+  }
+  
+  .quickFocusBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .statCardsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .searchWrapper {
+    max-width: none;
+    order: 2;
+  }
+
+  .topActions {
+    justify-content: flex-end;
+    order: 1;
+  }
+
+  .dashboardStatCard {
+    min-height: 140px;
+    padding: 20px;
+  }
+
+  .cardLargeValue {
+    font-size: 1.75rem;
+  }
+
+  .splitSection {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+    .greetingTitle {
+        font-size: 1.8rem;
+    }
+    
+    .searchCategories {
+        display: none;
+    }
 }

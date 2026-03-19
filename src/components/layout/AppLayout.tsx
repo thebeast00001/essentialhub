@@ -16,10 +16,14 @@ interface AppLayoutProps {
 
 import { useAuth } from '@/hooks/useAuth';
 
+import { Menu, Zap } from 'lucide-react';
+
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const pathname = usePathname();
     const { user, loading } = useAuth();
     const router = useRouter();
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+    
     const isAuthRoute = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/auth/callback');
     
     React.useEffect(() => {
@@ -40,6 +44,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         return () => clearInterval(interval);
     }, [isTimerRunning, tickTimer]);
 
+    // Close sidebar on route change
+    React.useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
+
 
     if (isAuthRoute) {
         return <>{children}</>;
@@ -47,7 +56,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
     return (
         <div className={styles.container}>
-            <Sidebar />
+            <header className={styles.mobileHeader}>
+                <div className={styles.mobileBranding}>
+                    <Zap size={20} fill="var(--accent-primary)" />
+                    <span>ESSENTIAL</span>
+                </div>
+                <button 
+                    className={styles.menuToggle}
+                    onClick={() => setIsSidebarOpen(true)}
+                    aria-label="Open Menu"
+                >
+                    <Menu size={24} />
+                </button>
+            </header>
+
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <CommandPalette />
             <main className={styles.main}>
                 <motion.div 
@@ -62,3 +85,4 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
     );
 };
+
