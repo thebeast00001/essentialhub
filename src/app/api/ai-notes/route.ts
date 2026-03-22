@@ -68,7 +68,8 @@ export async function POST(req: NextRequest) {
         let notes = '';
         try {
             console.log('Fetching from Gemini (gemini-1.5-flash)...');
-            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            // Using v1 stable endpoint
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -82,8 +83,8 @@ export async function POST(req: NextRequest) {
                 notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 console.log(`Success! Notes length: ${notes.length}`);
             } else {
-                console.warn('Gemini 1.5-flash failed, trying gemini-1.5-pro...', aiData.error?.message);
-                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+                console.warn('Gemini 1.5-flash failed, trying gemini-pro (stable)...', aiData.error?.message);
+                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
                 const secondData = await secondResponse.json();
                 if (secondResponse.ok) {
                     notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    console.log('Gemini 1.5-pro fallback successful');
+                    console.log('Gemini-pro fallback successful');
                 } else {
                     console.error('All AI models failed.', secondData.error?.message);
                     throw new Error(secondData.error?.message || 'AI Generation failed');
