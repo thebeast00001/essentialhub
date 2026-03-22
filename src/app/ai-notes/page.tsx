@@ -328,7 +328,7 @@ export default function AiNotesPage() {
 
                                             if (isVisual && !isMermaid) {
                                                 const rawHtml = contentStr.includes('physics-diagram') ? contentStr : `<div class="physics-diagram">${contentStr}</div>`;
-                                                return <div dangerouslySetInnerHTML={{ __html: rawHtml }} />;
+                                                return <div className={styles.visualBlock} dangerouslySetInnerHTML={{ __html: rawHtml }} />;
                                             }
 
                                             // Skip code block styling for simple text/formulas
