@@ -298,9 +298,16 @@ export default function AiNotesPage() {
                                                 return <StickyFlashcard content={contentStr} />;
                                             }
 
-                                            // Fallback detection: if it looks exactly like SVG code
-                                            if (contentStr.trim().startsWith('<svg') || contentStr.trim().startsWith('<circle') || contentStr.trim().startsWith('<line') || contentStr.trim().startsWith('<div class="physics-diagram"')) {
-                                                const rawHtml = contentStr.startsWith('<div') ? contentStr : `<div class="physics-diagram">${contentStr}</div>`;
+                                            // Intercepting SVGs and Visual HTML
+                                            const isVisual = isMermaid || 
+                                                           (match && (match[1] === 'svg' || match[1] === 'html')) || 
+                                                           contentStr.trim().startsWith('<svg') || 
+                                                           contentStr.trim().startsWith('<circle') || 
+                                                           contentStr.trim().startsWith('<line') || 
+                                                           contentStr.trim().startsWith('<div');
+
+                                            if (isVisual && !isMermaid) {
+                                                const rawHtml = contentStr.includes('physics-diagram') ? contentStr : `<div class="physics-diagram">${contentStr}</div>`;
                                                 return <div dangerouslySetInnerHTML={{ __html: rawHtml }} />;
                                             }
 
