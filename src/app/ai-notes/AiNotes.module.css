@@ -366,15 +366,14 @@
 }
 
 .markdownBody :global(.katex-display) {
-    background: #fff;
-    padding: 60px;
-    border: 2px dashed #cbd5e1;
-    border-radius: 8px;
-    margin: 80px 0;
-    font-size: 1.8em;
+    background: transparent;
+    padding: 10px;
+    margin: 40px 0;
+    font-size: 1.3em;
     text-align: center;
-    color: #0f172a;
-    box-shadow: 10px 10px 40px rgba(0,0,0,0.03);
+    color: #1e40af; /* Blue ink */
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .actionBar {
