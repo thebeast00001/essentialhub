@@ -22,7 +22,8 @@ import {
     Zap,
     MoreHorizontal,
     UserPlus,
-    Palette
+    Palette,
+    BookOpen
 } from 'lucide-react';
 import { useTaskStore, getLocalDateStr } from '@/store/useTaskStore';
 import { MomentumBar } from './MomentumBar';
@@ -43,6 +44,7 @@ const toolItems = [
     { icon: Flame, label: 'Habits', href: '/habits' },
     { icon: BarChart3, label: 'Analytics', href: '/insights' },
     { icon: Timer, label: 'Timer', href: '/focus' },
+    { icon: BookOpen, label: 'AI Notes', href: '/ai-notes' },
 ];
 
 
