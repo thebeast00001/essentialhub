@@ -28,10 +28,10 @@ export default function StickyFlashcard({ content }: { content: string }) {
 
             if (error) throw error;
             setSaved(true);
-        } catch (e) {
-            console.error('Failed to save to Supabase', e);
-            // Fallback for demo if table not ready
-            setSaved(true); 
+        } catch (e: any) {
+            console.error('Supabase Save Error:', e);
+            alert(`Failed to save: ${e.message || 'Check your Supabase configuration'}`);
+            setSaved(false); 
         } finally {
             setSaving(false);
         }

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Library, Trash2, Brain, Loader2 } from 'lucide-react';
+import { ArrowLeft, Library, Trash2, Brain, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -24,6 +24,8 @@ export default function FlashcardsPage() {
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         if (isLoaded && user) {
             fetchFlashcards();
@@ -33,17 +35,19 @@ export default function FlashcardsPage() {
     }, [user, isLoaded]);
 
     const fetchFlashcards = async () => {
+        setError(null);
         try {
-            const { data, error } = await supabase
+            const { data, error: sbError } = await supabase
                 .from('flashcards')
                 .select('*')
                 .eq('user_id', user?.id)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (sbError) throw sbError;
             setFlashcards(data || []);
-        } catch (error) {
-            console.error('Error fetching flashcards:', error);
+        } catch (err: any) {
+            console.error('Supabase Error:', err);
+            setError(err.message || 'Failed to connect to study deck database.');
         } finally {
             setLoading(false);
         }
@@ -101,7 +105,16 @@ export default function FlashcardsPage() {
                 </motion.div>
             </header>
 
-            {flashcards.length === 0 ? (
+            {error ? (
+                <div className={styles.emptyState}>
+                    <AlertCircle size={64} className={styles.emptyIcon} color="#ef4444" />
+                    <h3 style={{ color: '#ef4444' }}>Database Error</h3>
+                    <p>{error}</p>
+                    <div style={{ marginTop: '20px', padding: '20px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', textAlign: 'left', fontSize: '0.85rem' }}>
+                        <b>Troubleshooting Note</b>: This usually means the "flashcards" table is missing in Supabase. Check the <b>implementation_plan.md</b> for the SQL code needed to create it!
+                    </div>
+                </div>
+            ) : flashcards.length === 0 ? (
                 <div className={styles.emptyState}>
                     <Brain size={64} className={styles.emptyIcon} />
                     <h3>Your library is empty.</h3>
