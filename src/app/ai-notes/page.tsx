@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Sparkles, 
@@ -16,9 +16,49 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import styles from './AiNotes.module.css';
 import { clsx } from 'clsx';
 import Link from 'next/link';
+import mermaid from 'mermaid';
+
+// Initialize mermaid
+if (typeof window !== 'undefined') {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        fontFamily: 'Caveat, cursive',
+    });
+}
+
+const MermaidComponent = ({ chart }: { chart: string }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [svg, setSvg] = useState('');
+
+    useEffect(() => {
+        const render = async () => {
+            if (ref.current && chart) {
+                try {
+                    const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+                    const { svg } = await mermaid.render(id, chart);
+                    setSvg(svg);
+                } catch (err) {
+                    console.error('Mermaid render error:', err);
+                }
+            }
+        };
+        render();
+    }, [chart]);
+
+    return (
+        <div className={styles.mermaidContainer} ref={ref}>
+            <div dangerouslySetInnerHTML={{ __html: svg }} />
+        </div>
+    );
+};
 
 export default function AiNotesPage() {
     const [url, setUrl] = useState('');
@@ -26,6 +66,15 @@ export default function AiNotesPage() {
     const [notes, setNotes] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+
+    // Font injection
+    useEffect(() => {
+        const link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+        return () => { document.head.removeChild(link); };
+    }, []);
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,7 +135,7 @@ export default function AiNotesPage() {
                     </Link>
                     <h1 className={styles.title}>
                         <Brain size={48} className={styles.titleIcon} />
-                        AI Video Notes
+                        AI Study Notes
                     </h1>
                     <p className={styles.subtitle}>
                         Transform any YouTube video into structured study guides, flashcards, and quizzes in seconds.
@@ -156,7 +205,7 @@ export default function AiNotesPage() {
                         transition={{ type: 'spring', damping: 20 }}
                     >
                         <div className={styles.notesHeader}>
-                            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Generated Insights</h2>
+                            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>AI Performance Report</h2>
                             <div className={styles.actionBar}>
                                 <button className={styles.actionBtn} onClick={copyToClipboard}>
                                     {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -170,7 +219,23 @@ export default function AiNotesPage() {
                         </div>
 
                         <div className={styles.markdownBody}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            <ReactMarkdown 
+                                remarkPlugins={[remarkGfm, remarkMath]}
+                                rehypePlugins={[rehypeKatex]}
+                                components={{
+                                    code({ node, className, children, ...props }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        if (match && match[1] === 'mermaid') {
+                                            return <MermaidComponent chart={String(children).replace(/\n$/, '')} />;
+                                        }
+                                        return (
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
+                                        );
+                                    }
+                                }}
+                            >
                                 {notes}
                             </ReactMarkdown>
                         </div>

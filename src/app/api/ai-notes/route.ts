@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export async function POST(req: NextRequest) {
     try {
@@ -36,28 +31,81 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Transcript is too short to process.' }, { status: 400 });
         }
 
-        // 3. Generate Notes with Gemini
+        // 3. Generate Notes with Gemini via Direct Fetch (more robust)
         const prompt = `
             You are a master note-taker and educational assistant. Convert the following transcript from a YouTube video into a comprehensive, high-quality, and structured study guide. 
             
             Video ID: ${videoId}
             
-            Please include:
-            1. **Executive Summary**: A brief, high-level overview of the video's core message.
-            2. **Key Takeaways**: 5-10 essential points mentioned in the video.
-            3. **Deep Dive**: Detailed notes organized by logical sections with headers. Use bullet points and bold text for emphasis.
-            4. **Flashcards**: Create 5-10 question/answer pairs for active recall.
-            5. **Short Quiz**: 3-5 multiple-choice questions to test understanding (provide answers at the very end).
+            STRICT GUIDELINES FOR REVOLUTIONARY NOTES:
+            1. **Visual Quality**: Use H1 for the main title, H2 for major sections, and H3 for sub-topics.
+            2. **Emphasis**: **BOLD** every important term, definition, or key concept. Use "==term==" for highlights if you can, but standard **bold** is preferred for compatibility.
+            3. **Scientific Accuracy**: If the video describes any formulas, equations, or scientific laws, format them using LaTeX (e.g., $E=mc^{2}$ or $$\\frac{d}{dx}f(x)$$).
+            4. **Flowcharts & Diagrams**: If the video describes a process, a lifecycle, a hierarchy, or a step-by-step sequence, YOU MUST include a Mermaid.js flowchart.
+               Example:
+               \`\`\`mermaid
+               graph TD
+               A[Step 1] --> B[Step 2]
+               B --> C{Decision}
+               C -->|Yes| D[Result]
+               \`\`\`
+            5. **Educational Content**:
+               - **Executive Summary**: A punchy, 3-sentence summary of the core value.
+               - **Key Takeaways**: A bulleted list of the "golden nuggets" of information.
+               - **Detailed Deep Dive**: The meat of the notes, organized logically.
+               - **Active Recall**: Create 5 conceptual Flashcards (Question/Answer) and a 3-question Multiple Choice Quiz.
             
-            Format everything in beautiful, clean Markdown. Use emojis to make it visually engaging but maintain a professional and premium tone.
+            Tone: Professional, encouraging, and highly academic yet accessible.
             
             Transcript:
-            ${transcriptText.substring(0, 30000)} // Truncate to safety if extremely long, though Flash handles more.
+            ${transcriptText.substring(0, 30000)}
         `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const notes = response.text();
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+            return NextResponse.json({ error: 'Please set a valid GEMINI_API_KEY in .env.local' }, { status: 500 });
+        }
+
+        // Try gemini-2.5-flash or gemini-flash-latest
+        let notes = '';
+        try {
+            // gemini-2.5-flash seems to be the flagship in this fleet
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const aiData = await aiResponse.json();
+            
+            if (aiResponse.ok) {
+                notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else {
+                console.warn('gemini-2.5-flash failed, trying gemini-flash-latest...', aiData.error?.message);
+                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                const secondData = await secondResponse.json();
+                if (secondResponse.ok) {
+                    notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                } else {
+                    throw new Error(secondData.error?.message || 'AI Generation failed');
+                }
+            }
+        } catch (err: any) {
+            console.error('Gemini Fetch Error:', err.message);
+            return NextResponse.json({ error: `AI Error: ${err.message}` }, { status: 500 });
+        }
+
+        if (!notes) {
+            return NextResponse.json({ error: 'AI returned empty notes. Please try again.' }, { status: 500 });
+        }
 
         return NextResponse.json({ notes });
 
