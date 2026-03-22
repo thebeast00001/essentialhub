@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
             3. **Visual-First (MANDATORY)**: 
                - For every major concept, generate a high-quality **SVG code block** tagged with \`\`\`svg.
                - NO ASCII art. Use real SVGs for chemistry (molecules) and physics (diagrams).
-               - **SVG Layout**: Use a wide **viewBox** (e.g., \`0 0 1000 400\`) to ensure everything is spaced out.
-               - **NO OVERLAPPING TEXT**: Labels above arrows or next to symbols must have careful offsets. Keep at least **30px apart**.
-               - **Text Clarity**: Use \`font-size="18px"\` for main titles and \`16px\` for labels. Use \`font-family="Caveat, cursive"\`.
+               - **SVG Layout**: Use a wide **viewBox** (e.g., \`0 0 1000 500\`) to ensure everything is spaced out.
+               - **NO OVERLAPPING TEXT**: Labels above arrows or next to symbols must have careful offsets. Keep at least **40px vertical distance** between different text elements.
+               - **Font Precision**: use \`font-size="20px"\` for titles and \`18px\` for labels. Maintain #1e3a8a stroke.
             4. **Interactive Lab**: 
                - Use \`\`\`sandbox type="rotation"\`\`\` for inertia or \`\`\`sandbox type="projectile"\`\`\` for motion.
             5. **Sticky Flashcards**: 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
             6. **Aesthetic Vertical Flow**: 
                - NEVER use triple backticks for simple formulas or sentences. Triple backticks are ONLY for visuals.
                - Each math derivation step must be on its own line ($$ ... $$). 
-            7. **Full-Width Visuals**: Ensure SVGs use the available space. 
+            7. **Full-Width Visuals**: Ensure SVGs occupy the full 1000px width.
             8. **Soundness**: High academic tone but accessible English.
             
             Transcript:
@@ -90,21 +90,15 @@ export async function POST(req: NextRequest) {
                 notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 console.log(`Success! Notes length: ${notes.length}`);
             } else {
-                console.warn('Gemini 2.5-flash failed, trying fallback 1.5-flash...', aiData.error?.message);
-                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
-                });
-                const secondData = await secondResponse.json();
-                if (secondResponse.ok) {
-                    notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                } else {
-                    console.error('All AI models failed.', secondData.error?.message);
-                    throw new Error(secondData.error?.message || 'AI Generation failed');
+                const errMsg = aiData.error?.message || 'AI Generation failed';
+                console.error('Gemini 2.5-flash failed.', errMsg);
+                
+                // If it's a quota error, give a friendly message
+                if (aiData.error?.code === 429) {
+                    throw new Error('Daily AI Quota Reached (20/20). Please try again tomorrow or use a different API key.');
                 }
+                
+                throw new Error(errMsg);
             }
         } catch (err: any) {
             console.error('Final API Exception:', err.message);
