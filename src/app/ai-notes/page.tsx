@@ -25,10 +25,10 @@ import { clsx } from 'clsx';
 import Link from 'next/link';
 import mermaid from 'mermaid';
 
-// Initialize mermaid
+// Initialize mermaid (strictly localized to avoid breaking other app pages)
 if (typeof window !== 'undefined') {
     mermaid.initialize({
-        startOnLoad: true,
+        startOnLoad: false, // CRITICAL: Do not run globally on all pages
         theme: 'default',
         securityLevel: 'loose',
         fontFamily: 'Caveat, cursive',
