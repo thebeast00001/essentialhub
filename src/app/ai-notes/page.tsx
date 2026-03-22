@@ -52,10 +52,16 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
 
                 // Safely apply quotes to node labels avoiding double-quotes
                 cleanChart = cleanChart
-                    // Fix unquoted square brackets: A[Some text (var)] -> A["Some text (var)"]
-                    .replace(/([A-Za-z0-9_-]+)\[([^"\]]+)\]/g, '$1["$2"]')
-                    // Fix unquoted parentheses: A(Some text) -> A["Some text"]
-                    .replace(/([A-Za-z0-9_-]+)\(([^")]+)\)/g, '$1["$2"]');
+                    // Fix unquoted square brackets A[Label] -> A["Label"]
+                    .replace(/([A-Za-z0-9_-]+)\[(.*?)\]/g, (match, node, label) => {
+                        if (label.trim().startsWith('"') && label.trim().endsWith('"')) return match;
+                        return `${node}["${label.replace(/"/g, '&quot;')}"]`;
+                    })
+                    // Fix unquoted parentheses A(Label) -> A["Label"]
+                    .replace(/([A-Za-z0-9_-]+)\((.*?)\)/g, (match, node, label) => {
+                        if (label.trim().startsWith('"') && label.trim().endsWith('"')) return match;
+                        return `${node}["${label.replace(/"/g, '&quot;')}"]`;
+                    });
 
                 const { svg } = await mermaid.render(id, cleanChart);
                 setSvg(svg);
