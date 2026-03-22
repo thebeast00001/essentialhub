@@ -70,13 +70,21 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
         renderChart();
     }, [chart]);
 
-    if (error) return <pre className={styles.mermaidError}>{chart}</pre>;
+    if (error) {
+        return (
+            <div className={styles.codeBlock} style={{ borderStyle: 'dashed', borderColor: '#cbd5e1' }}>
+                <div style={{ color: '#64748b', fontSize: '0.85em', marginBottom: '10px', textTransform: 'uppercase', fontWeight: 900 }}>Concept Map (Raw Mode)</div>
+                <code style={{ whiteSpace: 'pre-wrap' }}>{chart}</code>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.mermaidContainer}>
-            <div dangerouslySetInnerHTML={{ __html: svg }} />
+            <div className="mermaid-wrapper" dangerouslySetInnerHTML={{ __html: svg }} />
         </div>
     );
+
 };
 
 export default function AiNotesPage() {
