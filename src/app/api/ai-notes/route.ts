@@ -80,10 +80,10 @@ export async function POST(req: NextRequest) {
             
             if (aiResponse.ok) {
                 notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                console.log(`AI Response OK. Notes length: ${notes.length}`);
+                console.log(`Success! Notes length: ${notes.length}`);
             } else {
-                console.error('Gemini 1.5-flash failed, trying fallback...', aiData.error?.message);
-                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                console.warn('Gemini 1.5-flash failed, trying gemini-1.5-pro...', aiData.error?.message);
+                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -93,14 +93,15 @@ export async function POST(req: NextRequest) {
                 const secondData = await secondResponse.json();
                 if (secondResponse.ok) {
                     notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    console.log('Fallback AI Response OK');
+                    console.log('Gemini 1.5-pro fallback successful');
                 } else {
+                    console.error('All AI models failed.', secondData.error?.message);
                     throw new Error(secondData.error?.message || 'AI Generation failed');
                 }
             }
         } catch (err: any) {
-            console.error('Gemini Fetch Error:', err.message);
-            return NextResponse.json({ error: `AI Error: ${err.message}` }, { status: 500 });
+            console.error('Final API Exception:', err.message);
+            return NextResponse.json({ error: err.message }, { status: 500 });
         }
 
         if (!notes) {

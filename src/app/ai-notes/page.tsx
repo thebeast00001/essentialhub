@@ -226,6 +226,24 @@ export default function AiNotesPage() {
                         <h2 className={styles.loadingText}>CRAFTING ELITE KNOWLEDGE...</h2>
                         <p className={styles.loadingSubtext}>Transcribing, deriving math, and drawing physics illustrations</p>
                     </motion.div>
+                ) : error ? (
+                    <motion.div 
+                        key="error"
+                        className={styles.loadingContainer}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <AlertCircle size={60} color="#ef4444" />
+                        <h2 style={{ color: '#ef4444' }}>Generation Failed</h2>
+                        <p style={{ color: '#94a3b8', maxWidth: '400px', textAlign: 'center' }}>{error}</p>
+                        <button 
+                            onClick={() => setError(null)}
+                            style={{ marginTop: '20px', padding: '10px 20px', background: '#334155', color: '#fff', borderRadius: '30px', border: 'none', cursor: 'pointer' }}
+                        >
+                            Try Again
+                        </button>
+                    </motion.div>
                 ) : notes ? (
                     <motion.div 
                         key="notes"
