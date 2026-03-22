@@ -109,36 +109,45 @@ export default function AiNotesPage() {
         return () => { document.head.removeChild(link); };
     }, []);
 
-    // Client-Side Scraper Fallback (Bypasses Production IP Blocks)
+    // Ultra-Reliable Browser Scraper (Bypasses Production IP Ban)
     const fetchTranscriptBrowser = async (vid: string) => {
-        try {
-            console.log('Browser Layer: Attempting Proxy-Enabled Client-Side Extraction...');
-            // We use 'allorigins' to fetch the HTML in the browser
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            const html = data.contents;
+        const proxies = [
+            `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`,
+            `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`
+        ];
 
-            // Attempt to find the caption track URL in the player response
-            const captionsMatch = html.match(/"captions":\{(.*?)\}\}/);
-            if (captionsMatch) {
-                const captionsJson = JSON.parse(`{${captionsMatch[1]}}}`);
-                const trackUrl = captionsJson.playerCaptionsTracklistRenderer?.captionTracks?.[0]?.baseUrl;
-                
-                if (trackUrl) {
-                    const captionResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
-                    const captionData = await captionResponse.json();
-                    const transcriptXml = captionData.contents;
+        for (const proxyUrl of proxies) {
+            try {
+                console.log(`Trying Browser Proxy: ${proxyUrl.split('/')[2]}`);
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const html = data.contents || data; // Handle different proxy JSON structures
+
+                if (!html || typeof html !== 'string') continue;
+
+                // 1. Try to find the 'captionTracks' JSON in the HTML
+                const captionsMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
+                if (captionsMatch) {
+                    const tracks = JSON.parse(captionsMatch[1]);
+                    const trackUrl = tracks[0]?.baseUrl;
                     
-                    // Simple XML to Text parse
-                    const textParts = transcriptXml.match(/text="(.*?)"/g);
-                    if (textParts) {
-                        return textParts.map((t: string) => t.match(/text="(.*?)"/)?.[1] || '').join(' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                    if (trackUrl) {
+                        const capRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
+                        const capData = await capRes.json();
+                        const xml = capData.contents;
+                        const text = xml.match(/text="(.*?)"/g);
+                        if (text) return text.map((t: string) => t.match(/text="(.*?)"/)?.[1] || '').join(' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
                     }
                 }
+
+                // 2. Fallback: Try to find 'shortDescription' if captions are totally disabled
+                const descMatch = html.match(/"shortDescription":"(.*?)"/);
+                if (descMatch && descMatch[1].length > 100) {
+                    return `[META-NOTES] ${descMatch[1].replace(/\\n/g, ' ')}`;
+                }
+            } catch (err) {
+                console.warn('Proxy attempt failed:', err);
             }
-        } catch (err) {
-            console.warn('Browser Layer Fetch Blocked:', err);
         }
         return null;
     };
@@ -156,12 +165,12 @@ export default function AiNotesPage() {
             let finalTranscriptText = isManual ? manualContent : '';
             const vid = extractVideoId(url);
 
-            // AUTO-FETCH OPTIMIZATION: If not manual, try to fetch the transcript IN THE BROWSER first
+            // BROWSER-BYPASS: If not manual, let the user's browser do the heavy lifting
             if (!isManual && vid) {
-                const browserTranscript = await fetchTranscriptBrowser(vid);
-                if (browserTranscript) {
-                    console.log('Success! Captured transcript in the browser.');
-                    finalTranscriptText = browserTranscript;
+                const browserResult = await fetchTranscriptBrowser(vid);
+                if (browserResult) {
+                    console.log('Browser-Side Scraper Success!');
+                    finalTranscriptText = browserResult;
                 }
             }
 
