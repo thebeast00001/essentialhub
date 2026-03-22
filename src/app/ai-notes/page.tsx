@@ -50,17 +50,21 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
                     .replace(/^```mermaid\n?/, '')
                     .replace(/\n?```$/, '');
 
-                // Safely apply quotes to node labels avoiding double-quotes
+                // Bulletproof Mermaid syntax healing
                 cleanChart = cleanChart
-                    // Fix unquoted square brackets A[Label] -> A["Label"]
+                    // 1. Turn every single double quote into a single quote to prevent internal crashes
+                    .replace(/"/g, "'")
+                    // 2. Wrap all node brackets safely in double quotes, stripping any bounding single quotes
                     .replace(/([A-Za-z0-9_-]+)\[(.*?)\]/g, (match, node, label) => {
-                        if (label.trim().startsWith('"') && label.trim().endsWith('"')) return match;
-                        return `${node}["${label.replace(/"/g, '&quot;')}"]`;
+                        let inner = label.trim();
+                        if (inner.startsWith("'") && inner.endsWith("'")) inner = inner.slice(1, -1);
+                        return `${node}["${inner}"]`;
                     })
-                    // Fix unquoted parentheses A(Label) -> A["Label"]
+                    // 3. Do the same for parentheses bindings
                     .replace(/([A-Za-z0-9_-]+)\((.*?)\)/g, (match, node, label) => {
-                        if (label.trim().startsWith('"') && label.trim().endsWith('"')) return match;
-                        return `${node}["${label.replace(/"/g, '&quot;')}"]`;
+                        let inner = label.trim();
+                        if (inner.startsWith("'") && inner.endsWith("'")) inner = inner.slice(1, -1);
+                        return `${node}["${inner}"]`;
                     });
 
                 const { svg } = await mermaid.render(id, cleanChart);

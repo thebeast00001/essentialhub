@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
                - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
                - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
                - **CRITICAL**: DO NOT put double quotes INSIDE the label text itself (e.g. use single quotes instead).
+               - **CRITICAL**: NEVER use Square Brackets \`[\` \`]\` inside the label text! Treat brackets as highly toxic. If you need brackets for math, use Parentheses \`()\` instead.
             5. **Derivations & Numericals (STRICT FORMATTING)**: 
                - **NEVER squish math together in a single paragraph.**
                - **Break down steps using Bullet Points or Numbered Lists.** 
