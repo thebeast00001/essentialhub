@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
                - Use \`**BOLD**\` for important terms (rendered in Blue Ink with Red Underline).
             3. **Physics Illustrations (MANDATORY)**: 
                - For physical setups (wheels, vectors, rigid bodies), generate clean **SVG code**.
-               - **NO BACKTICKS** for SVGs. Output raw \`<div class="physics-diagram"> <svg ...> ... </svg> </div>\`.
+               - **NO BACKTICKS** for SVGs. Output raw \`<div class="physics-diagram">\n<svg viewBox="0 0 400 200">\n...\n</svg>\n</div>\`.
+               - **CRITICAL**: Do NOT indent your SVG code with spaces or tabs. Start the \`<div...\` and \`<svg>\` directly at the beginning of the line. Indenting causes the system to render it as a raw code block!
+               - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, etc.) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags. NEVER output loose SVG tags.
                - **NO MERMAID** for physical drawings. Pure Mermaid is only allowed for the "Concept Map".
             4. **Derivations & Numericals**: 
                - Every line of math must be on a NEW LINE using LaTeX ($$ ... $$). 
