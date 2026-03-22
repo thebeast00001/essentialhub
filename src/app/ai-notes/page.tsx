@@ -18,6 +18,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
 import styles from './AiNotes.module.css';
 import { clsx } from 'clsx';
@@ -44,8 +45,12 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
             if (!chart) return;
             try {
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+                
                 // Clean up the chart string (remove any lingering markdown backticks)
-                const cleanChart = chart.trim().replace(/^```mermaid\n?/, '').replace(/\n?```$/, '');
+                let cleanChart = chart.trim()
+                    .replace(/^```mermaid\n?/, '')
+                    .replace(/\n?```$/, '');
+
                 const { svg } = await mermaid.render(id, cleanChart);
                 setSvg(svg);
                 setError(false);
@@ -128,6 +133,18 @@ export default function AiNotesPage() {
         element.click();
     };
 
+    // 🧼 CLEANUP LOGIC: Ensure no "computer language" like backticks around SVGs appears
+    const cleanNotes = (content: string) => {
+        if (!content) return "";
+        return content
+            // Remove backticks that AI might accidentally wrap around our physics-diagram blocks
+            .replace(/```(?:html|svg|xml)?\n?([\s\S]*?<div class="physics-diagram">[\s\S]*?<\/div>)\n?```/gi, '$1')
+            // Remove backticks around naked svg tags if any
+            .replace(/```(?:html|svg|xml)?\n?(<svg[\s\S]*?<\/svg>)\n?```/gi, '$1')
+            // Special case: sometimes AI puts backticks around KaTeX blocks
+            .replace(/```latex\n?([\s\S]*?)\n?```/gi, '$1');
+    };
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
@@ -144,7 +161,7 @@ export default function AiNotesPage() {
                         AI Study Notes
                     </h1>
                     <p className={styles.subtitle}>
-                        Transform any YouTube video into structured study guides, flashcards, and quizzes in seconds.
+                        Transform any YouTube video into elite, master-class study guides with SVG illustrations.
                     </p>
                 </motion.div>
             </header>
@@ -172,7 +189,7 @@ export default function AiNotesPage() {
             </section>
 
             <AnimatePresence mode="wait">
-                {loading && (
+                {loading ? (
                     <motion.div 
                         key="loading"
                         className={styles.loadingContainer}
@@ -184,25 +201,10 @@ export default function AiNotesPage() {
                             <div className={styles.pulse} />
                             <Brain size={60} color="var(--accent-primary)" style={{ position: 'relative', zIndex: 1 }} />
                         </div>
-                        <h2 className={styles.loadingText}>ZENITH AI IS THINKING</h2>
-                        <p className={styles.loadingSubtext}>Extracting transcript and synthesizing insights...</p>
+                        <h2 className={styles.loadingText}>CRAFTING ELITE KNOWLEDGE...</h2>
+                        <p className={styles.loadingSubtext}>Transcribing, deriving math, and drawing physics illustrations</p>
                     </motion.div>
-                )}
-
-                {error && (
-                    <motion.div 
-                        key="error"
-                        className={styles.errorCard}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        style={{ background: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.3)', padding: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', color: '#fca5a5', maxWidth: '600px', margin: '0 auto' }}
-                    >
-                        <AlertCircle size={24} />
-                        <p>{error}</p>
-                    </motion.div>
-                )}
-
-                {notes && !loading && (
+                ) : notes ? (
                     <motion.div 
                         key="notes"
                         initial={{ opacity: 0, y: 40 }}
@@ -231,7 +233,7 @@ export default function AiNotesPage() {
                             <div className={styles.markdownBody}>
                                 <ReactMarkdown 
                                     remarkPlugins={[remarkGfm, remarkMath]}
-                                    rehypePlugins={[rehypeKatex]}
+                                    rehypePlugins={[rehypeKatex, rehypeRaw]}
                                     components={{
                                         code({ node, inline, className, children, ...props }: any) {
                                             const match = /language-(\w+)/.exec(className || '');
@@ -247,21 +249,21 @@ export default function AiNotesPage() {
                                                     {children}
                                                 </code>
                                             ) : (
-                                                <pre className={styles.codeBlock}>
+                                                <span className={styles.codeBlock}>
                                                     <code className={className} {...props}>
                                                         {children}
                                                     </code>
-                                                </pre>
+                                                </span>
                                             );
                                         }
                                     }}
                                 >
-                                    {notes}
+                                    {cleanNotes(notes || "")}
                                 </ReactMarkdown>
                             </div>
                         </div>
                     </motion.div>
-                )}
+                ) : null}
             </AnimatePresence>
         </div>
     );

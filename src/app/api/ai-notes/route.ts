@@ -37,22 +37,30 @@ export async function POST(req: NextRequest) {
             
             Video ID: ${videoId}
             
-            STRICT GUIDELINES FOR REVOLUTIONARY NOTES:
-            1. **Visual Quality**: Use H1 for the main title, H2 for major sections, and H3 for sub-topics. Use emojis for a premium feel.
-            2. **Emphasis**: **BOLD** every important term. Example: **Artificial Intelligence**.
-            3. **Scientific Accuracy (CRITICAL)**: If the video describes any formulas, equations, or scientific laws, YOU MUST use LaTeX.
-               - DO NOT wrap LaTeX in code blocks. Use raw delimiters.
-               - For DISPLAY MATH (centered): Use \`$$\` on new lines. Example:
-                 $$ E = mc^2 $$
-               - For INLINE MATH: Use \`$\`. Example: $x + y = z$.
-            4. **Flowcharts & Diagrams (CRITICAL)**: If the video describes a process, hierarchy, or sequence, YOU MUST include a Mermaid.js flowchart.
-               - SYNTAX: Use \`\`\`mermaid followed by a valid graph (e.g., graph TD).
-               - DO NOT use any other labels for diagrams.
+            STRICT GUIDELINES FOR MASTER-CLASS STUDY NOTES (PURE MARKDOWN):
+            1. **Unlimitied Depth**: You have infinite space. Be extremely verbose, detailed, and thorough. Explain every concept from the ground up like a world-class mentor.
+            2. **ELITE FORMATTING (NO BACKTICKS)**: 
+               - USE PURE MARKDOWN ONLY. 
+               - **CRITICAL**: NEVER use backticks (\` \` \`) for SVG or HTML blocks. Output them as raw text directly in your markdown response.
+               - DO NOT use "style" attributes or color names in your text.
+               - Use \`#\` for the Page Title.
+               - Use \`##\` for Main Topics (rendered in Black Ink).
+               - Use \`###\` for Sub-topics (rendered in Black Ink with Red Underline).
+               - Use \`**BOLD**\` for important terms (rendered in Blue Ink with Red Underline).
+            3. **Physics Illustrations (MANDATORY)**: 
+               - For physical setups (wheels, vectors, rigid bodies), generate clean **SVG code**.
+               - **NO BACKTICKS** for SVGs. Output raw \`<div class="physics-diagram"> <svg ...> ... </svg> </div>\`.
+               - **NO MERMAID** for physical drawings. Pure Mermaid is only allowed for the "Concept Map".
+            4. **Derivations & Numericals**: 
+               - Every line of math must be on a NEW LINE using LaTeX ($$ ... $$). 
+               - Explain the logic of every transition clearly.
+            5. **Structured Tables**: Use Markdown Tables (Pure Markdown) for comparative data.
+            6. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
             5. **Educational Content**:
-               - **Executive Summary**: Punchy 3-sentence summary.
-               - **Key Takeaways**: Bulleted list of the most important concepts.
-               - **Detailed Deep Dive**: Comprehensive, logical notes with highlights.
-               - **Active Recall**: 5 conceptual Flashcards and a 3-question Quiz.
+               - **Executive Summary**: 3-sentence summary of the physics/math/topic.
+               - **Key Takeaways**: Bulleted conceptual "nuggets".
+               - **Detailed Deep Dive**: Comprehensive notes with step-by-step numericals.
+               - **Active Recall**: 5 Flashcards and a 3-question Quiz.
             
             Tone: Professional, encouraging, and highly academic yet accessible.
             

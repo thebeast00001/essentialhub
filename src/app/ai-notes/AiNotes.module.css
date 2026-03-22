@@ -163,19 +163,18 @@
     background-image: 
         linear-gradient(90deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
         linear-gradient(#eee .1em, transparent .1em);
-    background-size: 100% 100%, 100% 2.2em;
-    color: #334155;
+    background-size: 100% 100%, 100% 2.8em;
+    color: #1e3a8a; 
     border: 1px solid #e2e8f0;
     border-radius: 4px;
-    padding: 80px 100px;
-    min-height: 1000px;
+    padding: 120px 160px;
+    min-height: 2500px;
     box-shadow: 
-        0 1px 1px rgba(0,0,0,0.1), 
-        0 4px 8px rgba(0,0,0,0.05),
-        0 12px 24px rgba(0,0,0,0.05);
+        10px 10px 0px rgba(0,0,0,0.02),
+        30px 30px 60px rgba(0,0,0,0.1);
     position: relative;
     overflow: visible;
-    line-height: 2.2em; /* Sync with background-size */
+    line-height: 2.8em; 
 }
 
 /* Binder rings / Holes effect */
@@ -187,13 +186,13 @@
     bottom: 40px;
     width: 30px;
     background-image: radial-gradient(circle, #334155 40%, transparent 45%);
-    background-size: 30px 120px;
+    background-size: 30px 140px;
     background-repeat: repeat-y;
     opacity: 0.15;
     z-index: 5;
 }
 
-/* Coffee stain / subtle texture */
+/* Subtle texture */
 .notesWrapper::after {
     content: '';
     position: absolute;
@@ -208,128 +207,222 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 60px;
-    padding-bottom: 30px;
-    border-bottom: 2px solid #cbd5e1;
+    margin-bottom: 100px;
+    padding-bottom: 50px;
+    border-bottom: 3px solid #0f172a;
     z-index: 10;
     position: relative;
 }
 
-.notesHeader h2 {
+.zenithSeal {
+    position: absolute;
+    top: 100px;
+    right: 50px;
+    width: 120px;
+    height: 120px;
+    border: 4px double #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     font-family: var(--font-sans);
-    font-weight: 800;
-    color: #0f172a;
-    font-size: 1.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-weight: 900;
+    font-size: 0.7rem;
+    color: #dc2626;
+    opacity: 0.4;
+    transform: rotate(15deg);
+    pointer-events: none;
+    z-index: 5;
+    background: rgba(220, 38, 38, 0.05);
 }
 
 .markdownBody {
     position: relative;
     z-index: 10;
     font-family: 'Caveat', cursive, sans-serif;
-    font-size: 1.6rem;
-    color: #1e40af; /* Deep ink blue */
+    font-size: 2.2rem; /* Larger for Elite feel */
+    color: #1e40af; /* Blue Ink as DEFAULT */
+    line-height: 1.6em;
 }
 
-.markdownBody h1, .markdownBody h2, .markdownBody h3 {
-    font-family: var(--font-sans);
-    color: #0f172a;
-    font-weight: 900;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-    line-height: 1.2;
+.markdownBody h1 { 
+    font-size: 4.5rem; 
+    border-bottom: 8px solid #0f172a; 
+    display: inline-block; 
+    margin-bottom: 1.5em;
+    transform: rotate(-0.5deg);
 }
 
-.markdownBody h1 { font-size: 2.6rem; border-bottom: 4px solid #1e40af; display: inline-block; }
-.markdownBody h2 { font-size: 1.9rem; padding-bottom: 4px; border-bottom: 2px dashed #94a3b8; }
-.markdownBody h3 { font-size: 1.5rem; text-decoration: underline; text-decoration-color: #fbbf24; }
+.markdownBody h2 { 
+    font-size: 3.2rem; 
+    margin-top: 3.5em; 
+    padding-bottom: 15px; 
+    border-bottom: 4px solid #334155;
+    transform: rotate(0.2deg);
+}
+
+.markdownBody h3 { 
+    font-size: 2.6rem; 
+    text-decoration: underline; 
+    text-decoration-color: #dc2626;
+    margin-top: 2.5em;
+}
+
+.markdownBody p {
+    margin-bottom: 2.5em;
+}
 
 .markdownBody strong {
-    color: #1d4ed8;
-    background: linear-gradient(120deg, rgba(254, 240, 138, 0.6) 0%, rgba(254, 240, 138, 0.6) 100%);
-    background-repeat: no-repeat;
-    background-size: 100% 0.4em;
-    background-position: 0 85%;
-    padding: 0 4px;
-}
-
-.markdownBody li {
-    list-style-type: '👉 ';
-    padding-left: 10px;
-    margin-bottom: 12px;
-}
-
-/* Formula Container (Notebook Style) */
-.markdownBody :global(.katex-display) {
-    background: #fff;
-    padding: 30px;
-    border: 2px solid #e2e8f0;
-    border-radius: 4px;
-    box-shadow: 4px 4px 0px #cbd5e1;
-    margin: 40px 0;
-    font-family: serif !important; /* Keep formulas standard */
-    font-size: 1.2em;
-}
-
-.markdownBody :global(.katex) {
-    font-family: serif !important;
-}
-
-/* Mermaid Diagram (Notebook Style) */
-.mermaidContainer {
-    background: #fff;
-    padding: 40px;
-    border: 2px solid #e2e8f0;
-    border-radius: 4px;
-    box-shadow: 6px 6px 0px #cbd5e1;
-    margin: 40px 0;
-    display: flex;
-    justify-content: center;
+    color: #1e3a8a;
     position: relative;
 }
 
-.mermaidContainer::before {
-    content: 'DIAGRAM';
+.markdownBody strong::after {
+    content: "";
     position: absolute;
-    top: -12px;
-    left: 20px;
-    background: #334155;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 2px 10px;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: rgba(239, 68, 68, 0.3);
     border-radius: 4px;
+    transform: skewX(-20deg);
 }
 
-/* Blockquote (Sticky Note Style) */
-.markdownBody blockquote {
-    background: #fef9c3;
+.markdownBody li {
+    list-style-type: none;
+    padding-left: 50px;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.markdownBody li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #dc2626;
+    font-weight: 900;
+    font-size: 1.8rem;
+}
+
+.markdownBody ul li::before {
+    content: '●';
+    font-size: 1.2rem;
+    top: 5px;
+}
+
+.markdownBody table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 100px 0;
+    background: #fff;
+    border: 5px solid #0f172a;
+    box-shadow: 20px 20px 0px #f1f5f9;
+}
+
+.markdownBody th, .markdownBody td {
+    border: 2px solid #334155;
     padding: 30px;
-    margin: 50px 20px;
-    border: 1px solid #fef08a;
-    border-left: 8px solid #facc15;
-    transform: rotate(-1deg);
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
-    color: #713f12;
 }
 
-/* ─── Responsive ─────────────────────────────────────────── */
+.markdownBody th {
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+
+.physics-diagram {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 120px 0;
+    padding: 80px;
+    background: #fff;
+    border: 4px solid #0f172a;
+    border-radius: 16px;
+    box-shadow: 25px 25px 0px #f1f5f9;
+    position: relative;
+}
+
+.physics-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.physics-diagram::after {
+    content: 'PHYSICS VISUAL';
+    position: absolute;
+    bottom: -18px;
+    right: 40px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    padding: 6px 16px;
+    border-radius: 6px;
+}
+
+.markdownBody :global(.katex-display) {
+    background: #fff;
+    padding: 60px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    margin: 80px 0;
+    font-size: 1.8em;
+    text-align: center;
+    color: #0f172a;
+    box-shadow: 10px 10px 40px rgba(0,0,0,0.03);
+}
+
+.actionBar {
+    display: flex;
+    gap: 12px;
+}
+
+.actionBtn {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    color: #475569;
+}
+
+.actionBtn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.codeBlock {
+    display: block;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 40px 0;
+    overflow-x: auto;
+    font-size: 1rem;
+    line-height: 1.6;
+    white-space: pre;
+    color: #1e293b;
+    font-family: var(--font-mono);
+}
+
 @media (max-width: 1024px) {
-    .notesWrapper { padding: 60px 40px; }
-    .notesWrapper::before { display: none; }
+    .notesWrapper { padding: 80px 60px; }
 }
 
 @media (max-width: 768px) {
-    .markdownBody { font-size: 1.3rem; }
-    .notesHeader h2 { font-size: 1.2rem; }
-}
-
-/* ─── Responsive ─────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .container { padding: 40px 16px; }
-    .title { font-size: 2rem; }
-    .notesWrapper { padding: 30px 20px; }
-    .searchBox { flex-direction: column; padding: 16px; border-radius: 24px; }
-    .generateBtn { width: 100%; justify-content: center; }
+    .markdownBody { font-size: 1.5rem; }
+    .notesHeader h2 { font-size: 1.3rem; }
 }
