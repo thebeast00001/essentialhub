@@ -43,37 +43,29 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
     useEffect(() => {
         const renderChart = async () => {
             if (!chart) return;
+            const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+            
             try {
-                const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-                
+                // Clean up the chart string (remove any lingering markdown backticks)
                 let cleanChart = chart.trim()
                     .replace(/^```mermaid\n?/, '')
                     .replace(/\n?```$/, '');
-
-                // Bulletproof Mermaid syntax healing
-                cleanChart = cleanChart
-                    // 1. Turn every single double quote into a single quote to prevent internal crashes
-                    .replace(/"/g, "'")
-                    // 2. Wrap all node brackets safely in double quotes, stripping any bounding single quotes
-                    .replace(/([A-Za-z0-9_-]+)\[(.*?)\]/g, (match, node, label) => {
-                        let inner = label.trim();
-                        if (inner.startsWith("'") && inner.endsWith("'")) inner = inner.slice(1, -1);
-                        return `${node}["${inner}"]`;
-                    })
-                    // 3. Do the same for parentheses bindings
-                    .replace(/([A-Za-z0-9_-]+)\((.*?)\)/g, (match, node, label) => {
-                        let inner = label.trim();
-                        if (inner.startsWith("'") && inner.endsWith("'")) inner = inner.slice(1, -1);
-                        return `${node}["${inner}"]`;
-                    });
 
                 const { svg } = await mermaid.render(id, cleanChart);
                 setSvg(svg);
                 setError(false);
             } catch (err) {
-                console.error('Mermaid render error:', err);
+                console.warn('Mermaid render warning:', err);
+
+                // Mermaid automatically injects a massive SVG error overlay into the DOM with the ID `d${id}`.
+                // We must surgically remove it so it doesn't pollute the app globally!
+                const errorOverlay = document.getElementById(`d${id}`);
+                if (errorOverlay) {
+                    errorOverlay.remove();
+                }
                 setError(true);
             }
+
         };
         renderChart();
     }, [chart]);
