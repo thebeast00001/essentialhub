@@ -56,23 +56,18 @@ export async function POST(req: NextRequest) {
                </div>
                \`\`\`
             4. **Interactive Sandbox Visualizers (PRIORITY)**:
-               - If the topic involves motion, kinematics, or rotation, **INJECT A SANDBOX IMMEDIATELY**. Do not use text to explain what the animation can show.
-               - Use \`type="rotation"\` for inertia/rotation and \`type="projectile"\` for kinematics/parabolic motion.
-               - Example:
-               \`\`\`sandbox type="projectile"
-               \`\`\`
+               - If the topic involves motion or dynamics, **INJECT A SANDBOX IMMEDIATELY**.
+               - Use \`type="rotation"\` for inertia and \`type="projectile"\` for kinematics.
             5. **Tear-away Sticky Note Flashcards**:
-               - Identify the most critical definition or formula. Output it wrapped in a \`flashcard\` block.
-               - First line must be "Term: Definition".
-            6. **Verical Physics Flow**: 
-               - **Horizontal Squishing is Forbidden.** Each math step, each derivation line, and each logic point must be on its own line.
-               - Use \`$$\` for complex equations. Leave a blank line before and after.
-            7. **Structured Layout**:
-               - **Executive Summary**: 3 sentences maximum.
-               - **Key Takeaways**: Bullet points.
-               - **Visual Deep Dive**: Alternating between SVG diagrams and Vertical explanation.
-               - **Interactive Lab**: Inject a Sandbox here if applicable.
-               - **Active Recall**: 5 Flashcards and a 3-question Quiz.
+               - Output critical definitions in a \`flashcard\` block.
+            6. **Vertical Content Flow (AESTHETICS)**: 
+               - **NEVER use triple backticks for simple formulas or sentences.** (e.g., do NOT use \` \` \` for "CH3-CH2"). Use plain text or Inline LaTeX instead. 
+               - **NO BOXES**: Triple backticks create grey boxes that break the handwriting theme. Only use code blocks for SVGs or Sandboxes.
+               - **Math steps** must each be on their own line.
+            7. **SVG Optimization**: 
+               - For orbital diagrams or complex pathways, use a **wide viewBox** (e.g., \`0 0 1000 300\`) to ensure the details are not squished and are fully visible upon scrolling.
+            8. **Structured Layout**:
+               - Executive Summary -> Key Takeaways -> Visual Deep Dive (Diagrams) -> Lab -> Recall.
             
             Tone: Professional, encouraging, and highly academic yet accessible.
             

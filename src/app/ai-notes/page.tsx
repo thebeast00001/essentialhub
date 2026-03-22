@@ -306,9 +306,16 @@ export default function AiNotesPage() {
                                                            contentStr.trim().startsWith('<line') || 
                                                            contentStr.trim().startsWith('<div');
 
+                                            const isShort = contentStr.length < 60 && !contentStr.includes('\n');
+
                                             if (isVisual && !isMermaid) {
                                                 const rawHtml = contentStr.includes('physics-diagram') ? contentStr : `<div class="physics-diagram">${contentStr}</div>`;
                                                 return <div dangerouslySetInnerHTML={{ __html: rawHtml }} />;
+                                            }
+
+                                            // Skip code block styling for simple text/formulas
+                                            if (!match && !inline && isShort) {
+                                                return <span style={{ fontFamily: 'var(--font-mono)', verticalAlign: 'middle' }}>{children}</span>;
                                             }
 
                                             return inline ? (

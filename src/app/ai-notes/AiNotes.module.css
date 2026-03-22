@@ -379,7 +379,7 @@
 
 .physics-diagram {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     margin: 120px 0;
     padding: 80px;
@@ -388,11 +388,14 @@
     border-radius: 16px;
     box-shadow: 25px 25px 0px #f1f5f9;
     position: relative;
+    overflow-x: auto;
 }
 
 .physics-diagram svg {
-    max-width: 100%;
+    max-width: none;
     height: auto;
+    min-width: 800px;
+    flex-shrink: 0;
 }
 
 .physics-diagram::after {
