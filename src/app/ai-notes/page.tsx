@@ -243,6 +243,9 @@ export default function AiNotesPage() {
                                     remarkPlugins={[remarkGfm, remarkMath]}
                                     rehypePlugins={[rehypeKatex, rehypeRaw]}
                                     components={{
+                                        p({ node, children, ...props }: any) {
+                                            return <div className={styles.markdownP} {...props}>{children}</div>;
+                                        },
                                         code({ node, inline, className, children, ...props }: any) {
                                             const match = /language-(\w+)/.exec(className || '');
                                             const isMermaid = match && match[1] === 'mermaid';

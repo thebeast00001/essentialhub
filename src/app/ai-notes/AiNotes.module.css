@@ -269,7 +269,7 @@
     margin-top: 2.5em;
 }
 
-.markdownBody p {
+.markdownBody p, .markdownP {
     margin-bottom: 2.5em;
 }
 
