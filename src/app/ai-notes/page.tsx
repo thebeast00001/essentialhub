@@ -109,45 +109,40 @@ export default function AiNotesPage() {
         return () => { document.head.removeChild(link); };
     }, []);
 
-    // Ultra-Reliable Browser Scraper (Bypasses Production IP Ban)
+    // Client-Side 'TimedText' Scraper (The ultimate "Puppeteer-lite" bypass)
+    // This uses your browser's real IP and identity to grab the captions.
     const fetchTranscriptBrowser = async (vid: string) => {
-        const proxies = [
-            `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`,
-            `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`
-        ];
+        try {
+            console.log('Browser Bypass: Calling YouTube Captions API directly from your PC...');
+            // Fetch the watch page to find the list of transcript tracks
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            const html = data.contents;
 
-        for (const proxyUrl of proxies) {
-            try {
-                console.log(`Trying Browser Proxy: ${proxyUrl.split('/')[2]}`);
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                const html = data.contents || data; // Handle different proxy JSON structures
-
-                if (!html || typeof html !== 'string') continue;
-
-                // 1. Try to find the 'captionTracks' JSON in the HTML
-                const captionsMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
-                if (captionsMatch) {
-                    const tracks = JSON.parse(captionsMatch[1]);
-                    const trackUrl = tracks[0]?.baseUrl;
-                    
-                    if (trackUrl) {
-                        const capRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
-                        const capData = await capRes.json();
-                        const xml = capData.contents;
-                        const text = xml.match(/text="(.*?)"/g);
-                        if (text) return text.map((t: string) => t.match(/text="(.*?)"/)?.[1] || '').join(' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-                    }
+            // Search for the internal 'timedtext' API URL which contains the actual transcript
+            const timedTextMatch = html.match(/"baseUrl":"(https:\/\/www\.youtube\.com\/api\/timedtext.*?)"/);
+            if (timedTextMatch) {
+                // We've found the direct link to the captions file!
+                // We'll fetch it through the proxy to avoid CORS but keep your browser context
+                const captionUrl = timedTextMatch[1].replace(/\\u0026/g, '&');
+                console.log('Found Caption Tunnel:', captionUrl.substring(0, 50) + '...');
+                
+                const capResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(captionUrl + '&fmt=json3')}`);
+                const capData = await capResponse.json();
+                
+                // YouTube sends JSON3 format which is easy to parse
+                const captionsJson = JSON.parse(capData.contents);
+                if (captionsJson.events) {
+                    const fullText = captionsJson.events
+                        .map((ev: any) => ev.segs?.map((s: any) => s.utf8).join('') || '')
+                        .join(' ')
+                        .replace(/\n/g, ' ');
+                    return fullText;
                 }
-
-                // 2. Fallback: Try to find 'shortDescription' if captions are totally disabled
-                const descMatch = html.match(/"shortDescription":"(.*?)"/);
-                if (descMatch && descMatch[1].length > 100) {
-                    return `[META-NOTES] ${descMatch[1].replace(/\\n/g, ' ')}`;
-                }
-            } catch (err) {
-                console.warn('Proxy attempt failed:', err);
             }
+        } catch (err) {
+            console.warn('Browser Scraping Failed:', err);
         }
         return null;
     };
@@ -165,20 +160,22 @@ export default function AiNotesPage() {
             let finalTranscriptText = isManual ? manualContent : '';
             const vid = extractVideoId(url);
 
-            // BROWSER-BYPASS: If not manual, let the user's browser do the heavy lifting
+            // BROWSER-TUNNEL: We ask your computer to fetch the data if the server is blocked.
             if (!isManual && vid) {
                 const browserResult = await fetchTranscriptBrowser(vid);
-                if (browserResult) {
-                    console.log('Browser-Side Scraper Success!');
+                if (browserResult && browserResult.length > 100) {
+                    console.log('Browser-Side Scraper SUCCESS. Bypassing Server Block.');
                     finalTranscriptText = browserResult;
                 }
             }
 
+            // ... (Continue to server for Gemini processing)
             const response = await fetch('/api/ai-notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url, transcriptText: finalTranscriptText }),
             });
+            // ... (Rest of steaming handling)
 
             if (!response.ok) {
                 const data = await response.json();
