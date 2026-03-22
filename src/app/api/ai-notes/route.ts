@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
             }
 
-            // 2. Fetch Transcript with Multi-Layer Fallback
+            // 2. Fetch Transcript with Multi-Layer Fallback (Layer 1: Primary)
             try {
                 console.log(`Layer 1: Primary Fetch for ${videoId}...`);
                 const transcript = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
@@ -32,24 +32,28 @@ export async function POST(req: NextRequest) {
                 
                 try {
                     const pageResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        }
+                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
                     });
                     const html = await pageResponse.text();
-                    
-                    // Extract Title & Description (usually not blocked by simple bot detection)
-                    const title = html.match(/"title":\{"runs":\[\{"text":"(.*?)"\}\],/)?.[1] || 
-                                 html.match(/<title>(.*?)<\/title>/)?.[1]?.replace(' - YouTube', '') || '';
-                    
                     const description = html.match(/"shortDescription":"(.*?)"/)?.[1] || '';
-                    
                     if (description.length > 50) {
-                        transcriptText = `[META-NOTES MODE]\nTITLE: ${title}\nDESCRIPTION: ${description.replace(/\\n/g, '\n')}`;
-                        console.log('Layer 2 Success: Fetched Video Description as fallback.');
+                        transcriptText = `[META-NOTES MODE]\nTITLE: ${videoId}\nDESCRIPTION: ${description.replace(/\\n/g, '\n')}`;
                     }
                 } catch (metaErr) {
-                    console.error('Layer 2 Blocked:', metaErr);
+                    console.error('Layer 2 Blocked. Trying Layer 3 (Proxy-Tunnel)...');
+                    
+                    try {
+                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
+                        const proxyResponse = await fetch(proxyUrl);
+                        const proxyHtml = await proxyResponse.text();
+                        const proxyDesc = proxyHtml.match(/"shortDescription":"(.*?)"/)?.[1] || '';
+                        if (proxyDesc.length > 50) {
+                            transcriptText = `[PROXY-NOTES MODE]\nDESCRIPTION: ${proxyDesc.replace(/\\n/g, '\n')}`;
+                            console.log('Layer 3 Success: Tunneled through proxy.');
+                        }
+                    } catch (proxyErr) {
+                        console.error('Layer 3 also blocked:', proxyErr);
+                    }
                 }
 
                 if (!transcriptText) {
