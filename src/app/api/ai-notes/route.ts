@@ -52,12 +52,15 @@ export async function POST(req: NextRequest) {
                - **NO BACKTICKS** for SVGs. Output raw \`<div class="physics-diagram">\n<svg viewBox="0 0 400 200">\n...\n</svg>\n</div>\`.
                - **CRITICAL**: Do NOT indent your SVG code with spaces or tabs. Start the \`<div...\` and \`<svg>\` directly at the beginning of the line. Indenting causes the system to render it as a raw code block!
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, etc.) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags. NEVER output loose SVG tags.
-               - **NO MERMAID** for physical drawings. Pure Mermaid is only allowed for the "Concept Map".
-            4. **Derivations & Numericals**: 
+            4. **Concept Maps (Mermaid)**:
+               - **CRITICAL MERMAID QUOTE RULE**: If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
+               - WRONG: A[Translation & Rotation (CRTM)]
+               - RIGHT: A["Translation & Rotation (CRTM)"]
+            5. **Derivations & Numericals**: 
                - Every line of math must be on a NEW LINE using LaTeX ($$ ... $$). 
                - Explain the logic of every transition clearly.
-            5. **Structured Tables**: Use Markdown Tables (Pure Markdown) for comparative data.
-            6. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
+            6. **Structured Tables**: Use Markdown Tables (Pure Markdown) for comparative data.
+            7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
             5. **Educational Content**:
                - **Executive Summary**: 3-sentence summary of the physics/math/topic.
                - **Key Takeaways**: Bulleted conceptual "nuggets".

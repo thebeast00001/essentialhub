@@ -46,10 +46,16 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
             try {
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
                 
-                // Clean up the chart string (remove any lingering markdown backticks)
                 let cleanChart = chart.trim()
                     .replace(/^```mermaid\n?/, '')
                     .replace(/\n?```$/, '');
+
+                // Safely apply quotes to node labels avoiding double-quotes
+                cleanChart = cleanChart
+                    // Fix unquoted square brackets: A[Some text (var)] -> A["Some text (var)"]
+                    .replace(/([A-Za-z0-9_-]+)\[([^"\]]+)\]/g, '$1["$2"]')
+                    // Fix unquoted parentheses: A(Some text) -> A["Some text"]
+                    .replace(/([A-Za-z0-9_-]+)\(([^")]+)\)/g, '$1["$2"]');
 
                 const { svg } = await mermaid.render(id, cleanChart);
                 setSvg(svg);
