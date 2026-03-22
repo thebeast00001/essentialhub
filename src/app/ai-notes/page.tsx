@@ -109,6 +109,40 @@ export default function AiNotesPage() {
         return () => { document.head.removeChild(link); };
     }, []);
 
+    // Client-Side Scraper Fallback (Bypasses Production IP Blocks)
+    const fetchTranscriptBrowser = async (vid: string) => {
+        try {
+            console.log('Browser Layer: Attempting Proxy-Enabled Client-Side Extraction...');
+            // We use 'allorigins' to fetch the HTML in the browser
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${vid}`)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            const html = data.contents;
+
+            // Attempt to find the caption track URL in the player response
+            const captionsMatch = html.match(/"captions":\{(.*?)\}\}/);
+            if (captionsMatch) {
+                const captionsJson = JSON.parse(`{${captionsMatch[1]}}}`);
+                const trackUrl = captionsJson.playerCaptionsTracklistRenderer?.captionTracks?.[0]?.baseUrl;
+                
+                if (trackUrl) {
+                    const captionResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
+                    const captionData = await captionResponse.json();
+                    const transcriptXml = captionData.contents;
+                    
+                    // Simple XML to Text parse
+                    const textParts = transcriptXml.match(/text="(.*?)"/g);
+                    if (textParts) {
+                        return textParts.map((t: string) => t.match(/text="(.*?)"/)?.[1] || '').join(' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Browser Layer Fetch Blocked:', err);
+        }
+        return null;
+    };
+
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isManual && !manualContent.trim()) return;
@@ -116,14 +150,25 @@ export default function AiNotesPage() {
 
         setLoading(true);
         setError(null);
-        setNotes(''); // Initialize as empty for streaming
+        setNotes('');
 
         try {
-            console.log('Generating streaming notes...', isManual ? 'Manual Mode' : `URL: ${url}`);
+            let finalTranscriptText = isManual ? manualContent : '';
+            const vid = extractVideoId(url);
+
+            // AUTO-FETCH OPTIMIZATION: If not manual, try to fetch the transcript IN THE BROWSER first
+            if (!isManual && vid) {
+                const browserTranscript = await fetchTranscriptBrowser(vid);
+                if (browserTranscript) {
+                    console.log('Success! Captured transcript in the browser.');
+                    finalTranscriptText = browserTranscript;
+                }
+            }
+
             const response = await fetch('/api/ai-notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url }),
+                body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url, transcriptText: finalTranscriptText }),
             });
 
             if (!response.ok) {
@@ -141,21 +186,15 @@ export default function AiNotesPage() {
                 if (done) break;
 
                 const chunk = decoder.decode(value, { stream: true });
-                
-                // Gemini Stream Extractor
-                // The stream contains chunks like: [{"candidates":[{"content":{"parts":[{"text":"hello"}]}}]}, ...]
-                // We'll use a regex to extract text fragments from the raw JSON chunks
                 const matches = chunk.matchAll(/"text":\s*"(.*?)"/g);
                 for (const match of matches) {
                     let text = match[1];
-                    // Unescape JSON string characters
                     text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
                     fullNotes += text;
                     setNotes(fullNotes);
                 }
             }
             
-            // Scroll to notes after a small delay to allow animation
             setTimeout(() => {
                 window.scrollTo({ top: window.innerHeight * 0.5, behavior: 'smooth' });
             }, 500);
@@ -423,4 +462,10 @@ export default function AiNotesPage() {
             </AnimatePresence>
         </div>
     );
+}
+
+function extractVideoId(url: string) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
 }
