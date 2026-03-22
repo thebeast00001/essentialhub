@@ -246,22 +246,29 @@ export default function AiNotesPage() {
                                         code({ node, inline, className, children, ...props }: any) {
                                             const match = /language-(\w+)/.exec(className || '');
                                             const isMermaid = match && match[1] === 'mermaid';
+                                            const contentStr = String(children);
                                             
-                                            if (isMermaid) {
-                                                const chart = String(children).replace(/\n$/, '');
-                                                return <MermaidComponent chart={chart} />;
+                                            // Fallback detection: if it looks like Mermaid but missing tag
+                                            if (isMermaid || contentStr.trim().startsWith('graph ') || contentStr.trim().startsWith('sequenceDiagram') || contentStr.trim().startsWith('pie')) {
+                                                return <MermaidComponent chart={contentStr.replace(/\n$/, '')} />;
+                                            }
+
+                                            // Fallback detection: if it looks exactly like SVG code
+                                            if (contentStr.trim().startsWith('<svg') || contentStr.trim().startsWith('<circle') || contentStr.trim().startsWith('<line') || contentStr.trim().startsWith('<div class="physics-diagram"')) {
+                                                const rawHtml = contentStr.startsWith('<div') ? contentStr : `<div class="physics-diagram">${contentStr}</div>`;
+                                                return <div dangerouslySetInnerHTML={{ __html: rawHtml }} />;
                                             }
 
                                             return inline ? (
-                                                <code className={className} {...props}>
+                                                <code style={{ fontSize: '1.1em', fontWeight: 'bold' }} {...props}>
                                                     {children}
                                                 </code>
                                             ) : (
-                                                <span className={styles.codeBlock}>
+                                                <div className={styles.codeBlock}>
                                                     <code className={className} {...props}>
                                                         {children}
                                                     </code>
-                                                </span>
+                                                </div>
                                             );
                                         }
                                     }}

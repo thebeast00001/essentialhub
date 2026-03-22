@@ -53,13 +53,14 @@ export async function POST(req: NextRequest) {
                - **CRITICAL**: Do NOT indent your SVG code with spaces or tabs. Start the \`<div...\` and \`<svg>\` directly at the beginning of the line. Indenting causes the system to render it as a raw code block!
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, etc.) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags. NEVER output loose SVG tags.
             4. **Concept Maps (Mermaid)**:
-               - **CRITICAL MERMAID QUOTE RULE**: If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
-               - WRONG: A[Translation & Rotation (CRTM)]
-               - RIGHT: A["Translation & Rotation (CRTM)"]
+               - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
+               - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
             5. **Derivations & Numericals**: 
-               - Every line of math must be on a NEW LINE using LaTeX ($$ ... $$). 
+               - Every FULL formula/equation must be on a NEW LINE using Block LaTeX ($$ ... $$). 
+               - **CRITICAL**: Single variables in text (like mass $m$ or radius $r$) must be INLINE using Inline LaTeX ($ ... $). 
+               - NEVER put single variables on their own line. NEVER put them inside backticks or code blocks.
                - Explain the logic of every transition clearly.
-            6. **Structured Tables**: Use Markdown Tables (Pure Markdown) for comparative data.
+            6. **Structured Tables**: Use Markdown Tables for comparative data.
             7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
             5. **Educational Content**:
                - **Executive Summary**: 3-sentence summary of the physics/math/topic.
