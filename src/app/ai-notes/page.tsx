@@ -93,6 +93,8 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
 
 export default function AiNotesPage() {
     const [url, setUrl] = useState('');
+    const [manualContent, setManualContent] = useState('');
+    const [isManual, setIsManual] = useState(false);
     const [loading, setLoading] = useState(false);
     const [notes, setNotes] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -109,27 +111,34 @@ export default function AiNotesPage() {
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!url.trim()) return;
+        if (isManual && !manualContent.trim()) return;
+        if (!isManual && !url.trim()) return;
 
         setLoading(true);
         setError(null);
         setNotes(null);
 
         try {
-            const res = await fetch('/api/ai-notes', {
+            console.log('Generating notes...', isManual ? 'Manual Mode' : `URL: ${url}`);
+            const response = await fetch('/api/ai-notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }),
+                body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url }),
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (!res.ok) {
+            if (!response.ok) {
                 throw new Error(data.error || 'Failed to generate notes');
             }
 
             setNotes(data.notes);
+            // Scroll to notes after a small delay to allow animation
+            setTimeout(() => {
+                window.scrollTo({ top: window.innerHeight * 0.5, behavior: 'smooth' });
+            }, 500);
         } catch (err: any) {
+            console.error('Generation Error:', err.message);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -189,25 +198,58 @@ export default function AiNotesPage() {
             </header>
 
             <section className={styles.searchSection}>
-                <form onSubmit={handleGenerate} className={styles.searchBox}>
-                    <Youtube size={24} style={{ marginLeft: '16px', color: '#ff0000' }} />
-                    <input 
-                        type="text" 
-                        placeholder="Paste YouTube Video URL (e.g. https://www.youtube.com/watch?v=...)"
-                        className={styles.input}
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        disabled={loading}
-                    />
+                <div className={styles.modeTabs}>
+                    <button 
+                        className={clsx(styles.modeTab, !isManual && styles.activeTab)}
+                        onClick={() => setIsManual(false)}
+                    >
+                        <Youtube size={16} /> Auto-Fetch
+                    </button>
+                    <button 
+                        className={clsx(styles.modeTab, isManual && styles.activeTab)}
+                        onClick={() => setIsManual(true)}
+                    >
+                        <Copy size={16} /> Paste Transcript
+                    </button>
+                </div>
+
+                <form onSubmit={handleGenerate} className={clsx(styles.searchBox, isManual && styles.manualBox)}>
+                    {isManual ? (
+                        <textarea
+                            placeholder="Paste the YouTube transcript or lecture text here (100+ words recommended)..."
+                            className={styles.manualTextarea}
+                            value={manualContent}
+                            onChange={(e) => setManualContent(e.target.value)}
+                            disabled={loading}
+                        />
+                    ) : (
+                        <>
+                            <Youtube size={24} style={{ marginLeft: '16px', color: '#ff0000' }} />
+                            <input 
+                                type="text" 
+                                placeholder="Paste YouTube Video URL (e.g. https://www.youtube.com/watch?v=...)"
+                                className={styles.input}
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                disabled={loading}
+                            />
+                        </>
+                    )}
                     <button 
                         type="submit" 
                         className={styles.generateBtn}
-                        disabled={loading || !url.trim()}
+                        disabled={loading || (isManual ? !manualContent.trim() : !url.trim())}
                     >
                         {loading ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                        {loading ? 'Analyzing...' : 'Generate Notes'}
+                        {loading ? 'Analyzing...' : isManual ? 'Craft from Text' : 'Generate Notes'}
                     </button>
                 </form>
+
+                {!isManual && !loading && !notes && (
+                    <p className={styles.infoHint}>
+                        Pro-tip: If the link fails (YouTube blocks us), switch to <strong>"Paste Transcript"</strong> mode above.
+                    </p>
+                )}
             </section>
 
             <AnimatePresence mode="wait">

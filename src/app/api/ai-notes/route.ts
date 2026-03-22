@@ -3,28 +3,38 @@ import { YoutubeTranscript } from 'youtube-transcript';
 
 export async function POST(req: NextRequest) {
     try {
-        const { url } = await req.json();
+        const { url, transcriptText: providedTranscript } = await req.json();
 
-        if (!url) {
-            return NextResponse.json({ error: 'YouTube URL is required' }, { status: 400 });
-        }
+        let transcriptText = providedTranscript || '';
+        let videoId = 'manual';
 
-        // 1. Extract Video ID
-        const videoId = extractVideoId(url);
-        if (!videoId) {
-            return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
-        }
+        if (!transcriptText) {
+            if (!url) {
+                return NextResponse.json({ error: 'YouTube URL or Transcript Text is required' }, { status: 400 });
+            }
 
-        // 2. Fetch Transcript
-        let transcriptText = '';
-        try {
-            const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-            transcriptText = transcript.map(t => t.text).join(' ');
-        } catch (err: any) {
-            console.error('Transcript error:', err);
-            return NextResponse.json({ 
-                error: 'Could not fetch transcript. This video might not have captions enabled or is restricted.' 
-            }, { status: 500 });
+            // 1. Extract Video ID
+            videoId = extractVideoId(url) || 'manual';
+            if (videoId === 'manual' && !url.includes('manual')) {
+                return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
+            }
+
+            // 2. Fetch Transcript
+            try {
+                console.log(`Fetching transcript for: ${videoId}`);
+                const transcript = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
+                    .catch(() => YoutubeTranscript.fetchTranscript(videoId, { lang: 'hi' }))
+                    .catch(() => YoutubeTranscript.fetchTranscript(videoId)); 
+                
+                transcriptText = transcript.map(t => t.text).join(' ');
+            } catch (err: any) {
+                console.error('Transcript fetch failed completely:', err.message);
+                return NextResponse.json({ 
+                    error: `YouTube blocked the transcript request. Try the "Paste Manually" mode below!` 
+                }, { status: 500 });
+            }
+        } else {
+            console.log('Using manually provided transcript text.');
         }
 
         if (!transcriptText || transcriptText.length < 50) {

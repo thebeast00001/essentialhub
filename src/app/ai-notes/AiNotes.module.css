@@ -86,6 +86,42 @@
     margin-bottom: 60px;
     z-index: 20;
     position: relative;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.modeTabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    justify-content: center;
+}
+
+.modeTab {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.modeTab:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.activeTab {
+    background: var(--accent-primary);
+    color: #fff;
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 20px rgba(var(--accent-rgb), 0.3);
 }
 
 .searchBox {
@@ -97,10 +133,39 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: 900px;
-    margin: 0 auto;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.manualBox {
+    border-radius: 24px;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.manualTextarea {
+    width: 100%;
+    min-height: 250px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    padding: 12px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.infoHint {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
 .searchBox:focus-within {
