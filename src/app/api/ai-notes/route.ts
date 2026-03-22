@@ -68,12 +68,17 @@ export async function POST(req: NextRequest) {
         let notes = '';
         try {
             console.log('Fetching from Gemini (gemini-1.5-flash)...');
-            // Using v1 stable endpoint
-            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts: [{ text: prompt }] }],
+                    safetySettings: [
+                        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+                    ]
                 })
             });
 
@@ -83,22 +88,8 @@ export async function POST(req: NextRequest) {
                 notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 console.log(`Success! Notes length: ${notes.length}`);
             } else {
-                console.warn('Gemini 1.5-flash failed, trying gemini-pro (stable)...', aiData.error?.message);
-                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
-                });
-                const secondData = await secondResponse.json();
-                if (secondResponse.ok) {
-                    notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    console.log('Gemini-pro fallback successful');
-                } else {
-                    console.error('All AI models failed.', secondData.error?.message);
-                    throw new Error(secondData.error?.message || 'AI Generation failed');
-                }
+                console.error('Gemini 1.5-flash failed.', aiData.error?.message);
+                throw new Error(aiData.error?.message || 'AI Generation failed');
             }
         } catch (err: any) {
             console.error('Final API Exception:', err.message);
