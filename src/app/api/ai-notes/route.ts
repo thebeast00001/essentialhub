@@ -67,7 +67,16 @@ export async function POST(req: NextRequest) {
                \`\`\`sandbox type="rotation"
                \`\`\`
                - **CRITICAL**: The Sandbox code block must have a blank empty line before and after it to render correctly.
-            5. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
+            5. **Tear-away Sticky Note Flashcards (MANDATORY)**:
+               - Identify the absolute most critical definition or final formula of the topic.
+               - Output this wrapped in a custom code block tagged as \`flashcard\`.
+               - The first line MUST contain the Term followed by a colon. Subsequent lines contain the definition.
+               - Example Output:
+               \`\`\`flashcard
+               Torque:
+               The rotational equivalent of linear force. Calculate using $\tau = r \times F$.
+               \`\`\`
+            6. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
                - **NEVER WRITE HUGE PARAGRAPHS.** Use short, simple sentences.
                - **NEVER squish math or derivation steps together horizontally.**
                - When demonstrating steps (e.g., plugging in values), **EACH STEP MUST BE ON A NEW LINE.**

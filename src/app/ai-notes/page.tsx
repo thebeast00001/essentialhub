@@ -25,6 +25,7 @@ import { clsx } from 'clsx';
 import Link from 'next/link';
 import mermaid from 'mermaid';
 import MomentOfInertiaSandbox from '@/components/sandboxes/MomentOfInertiaSandbox';
+import StickyFlashcard from '@/components/flashcards/StickyFlashcard';
 
 // Initialize mermaid (strictly localized to avoid breaking other app pages)
 if (typeof window !== 'undefined') {
@@ -267,8 +268,13 @@ export default function AiNotesPage() {
                                                 if (contentStr.toLowerCase().includes('type="rotation"') || contentStr.toLowerCase().includes('type="inertia"')) {
                                                     return <MomentOfInertiaSandbox />;
                                                 }
-                                                // Fallback if type not found, render a generic sandbox wrapper
                                                 return <MomentOfInertiaSandbox />;
+                                            }
+
+                                            // Intercept Sticky Note Flashcards
+                                            const isFlashcard = match && match[1] === 'flashcard';
+                                            if (isFlashcard) {
+                                                return <StickyFlashcard content={contentStr} />;
                                             }
 
                                             // Fallback detection: if it looks exactly like SVG code
