@@ -29,8 +29,12 @@ export default function StickyFlashcard({ content }: { content: string }) {
             if (error) throw error;
             setSaved(true);
         } catch (e: any) {
-            console.error('Supabase Save Error:', e);
-            alert(`Failed to save: ${e.message || 'Check your Supabase configuration'}`);
+            console.error('SUPABASE SAVE DEBUG:', e);
+            if (e.message) console.error('Error Message:', e.message);
+            if (e.details) console.error('Error Details:', e.details);
+            if (e.hint) console.error('Error Hint:', e.hint);
+            
+            alert(`Supabase Error: ${e.message || 'The "flashcards" table may be missing. Check the walkthrough for the SQL setup command.'}`);
             setSaved(false); 
         } finally {
             setSaving(false);
