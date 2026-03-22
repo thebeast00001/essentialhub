@@ -44,7 +44,9 @@ export async function POST(req: NextRequest) {
             3. **Visual-First (MANDATORY)**: 
                - For every major concept, generate a high-quality **SVG code block** tagged with \`\`\`svg.
                - NO ASCII art. Use real SVGs for chemistry (molecules) and physics (diagrams).
-               - Aesthetics: #1e3a8a stroke, Caveat font for text inside SVG.
+               - **SVG Layout**: Use a wide **viewBox** (e.g., \`0 0 1000 400\`) to ensure everything is spaced out.
+               - **NO OVERLAPPING TEXT**: Labels above arrows or next to symbols must have careful offsets. Keep at least **30px apart**.
+               - **Text Clarity**: Use \`font-size="18px"\` for main titles and \`16px\` for labels. Use \`font-family="Caveat, cursive"\`.
             4. **Interactive Lab**: 
                - Use \`\`\`sandbox type="rotation"\`\`\` for inertia or \`\`\`sandbox type="projectile"\`\`\` for motion.
             5. **Sticky Flashcards**: 
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
             6. **Aesthetic Vertical Flow**: 
                - NEVER use triple backticks for simple formulas or sentences. Triple backticks are ONLY for visuals.
                - Each math derivation step must be on its own line ($$ ... $$). 
-            7. **SVG Optimization**: Use wide viewbox for complex orbital diagrams to ensure they scroll well.
+            7. **Full-Width Visuals**: Ensure SVGs use the available space. 
             8. **Soundness**: High academic tone but accessible English.
             
             Transcript:
