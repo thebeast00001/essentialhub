@@ -59,15 +59,23 @@ export async function POST(req: NextRequest) {
                </div>
                \`\`\`
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
-            4. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
+            4. **Interactive Sandbox Visualizers (HIGHLY RECOMMENDED)**:
+               - You have the ability to embed live, dragging React simulations directly into the notebook!
+               - If your concept involves rotational motion, moment of inertia, or angular kinematics, YOU MUST inject the interactive visualizer.
+               - To inject it, simply write an empty code block tagged with \`sandbox\` and specify the \`type\`.
+               - Example Output:
+               \`\`\`sandbox type="rotation"
+               \`\`\`
+               - **CRITICAL**: The Sandbox code block must have a blank empty line before and after it to render correctly.
+            5. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
                - **NEVER WRITE HUGE PARAGRAPHS.** Use short, simple sentences.
                - **NEVER squish math or derivation steps together horizontally.**
                - When demonstrating steps (e.g., plugging in values), **EACH STEP MUST BE ON A NEW LINE.**
                - Use \`$$\` for any equation involving fractions, integrations, or multiple terms.
                - **CRITICAL**: You MUST leave a blank empty line before AND after every \`$$\` block and \`\`\`svg block so it renders correctly. 
                - Single variables in text ($m$, $r$) must be Inline LaTeX (\`$ ... $\`). 
-            5. **Structured Tables**: Use Markdown Tables for comparative data.
-            6. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
+            6. **Structured Tables**: Use Markdown Tables for comparative data.
+            7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
             5. **Educational Content**:
                - **Executive Summary**: 3-sentence summary of the physics/math/topic.
                - **Key Takeaways**: Bulleted conceptual "nuggets".

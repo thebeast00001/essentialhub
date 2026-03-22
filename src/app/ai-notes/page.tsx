@@ -24,6 +24,7 @@ import styles from './AiNotes.module.css';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import mermaid from 'mermaid';
+import MomentOfInertiaSandbox from '@/components/sandboxes/MomentOfInertiaSandbox';
 
 // Initialize mermaid (strictly localized to avoid breaking other app pages)
 if (typeof window !== 'undefined') {
@@ -258,6 +259,16 @@ export default function AiNotesPage() {
                                             // Fallback detection: if it looks like Mermaid but missing tag
                                             if (isMermaid || contentStr.trim().startsWith('graph ') || contentStr.trim().startsWith('sequenceDiagram') || contentStr.trim().startsWith('pie')) {
                                                 return <MermaidComponent chart={contentStr.replace(/\n$/, '')} />;
+                                            }
+
+                                            // Intercept Interactive Sandboxes
+                                            const isSandbox = match && match[1] === 'sandbox';
+                                            if (isSandbox) {
+                                                if (contentStr.toLowerCase().includes('type="rotation"') || contentStr.toLowerCase().includes('type="inertia"')) {
+                                                    return <MomentOfInertiaSandbox />;
+                                                }
+                                                // Fallback if type not found, render a generic sandbox wrapper
+                                                return <MomentOfInertiaSandbox />;
                                             }
 
                                             // Fallback detection: if it looks exactly like SVG code
