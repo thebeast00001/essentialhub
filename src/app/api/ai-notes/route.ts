@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
     try {
         const { url, transcriptText: providedTranscript } = await req.json();
@@ -13,20 +15,18 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: 'YouTube URL or Transcript Text is required' }, { status: 400 });
             }
 
-            // 1. Extract Video ID
             videoId = extractVideoId(url) || 'manual';
             if (videoId === 'manual' && !url.includes('manual')) {
                 return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
             }
 
-            // 2. Fetch Transcript with Multi-Layer Fallback (Layer 1: Primary)
             try {
                 console.log(`Layer 1: Primary Fetch for ${videoId}...`);
                 const transcript = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
                     .catch(() => YoutubeTranscript.fetchTranscript(videoId, { lang: 'hi' }))
                     .catch(() => YoutubeTranscript.fetchTranscript(videoId)); 
                 
-                transcriptText = transcript.map(t => t.text).join(' ');
+                transcriptText = transcript.map((t: any) => t.text).join(' ');
             } catch (err: any) {
                 console.warn('Layer 1 Blocked. Trying Layer 2 (Meta Recovery)...');
                 
@@ -41,32 +41,20 @@ export async function POST(req: NextRequest) {
                     }
                 } catch (metaErr) {
                     console.error('Layer 2 Blocked. Trying Layer 3 (Invidious Proxy API)...');
-                    
                     try {
-                        // Use an open-source Invidious instance API which is specifically made to bypass blocks
                         const invidiousRes = await fetch(`https://invidious.snopyta.org/api/v1/captions/${videoId}?label=English`);
                         const invidiousData = await invidiousRes.json();
                         if (invidiousData.captions && invidiousData.captions.length > 0) {
                             transcriptText = invidiousData.captions.map((c: any) => c.text).join(' ');
-                            console.log('Layer 3 Success: Fetched via Invidious Proxy.');
                         }
                     } catch (proxyErr) {
-                        // Last ditch: try one more instance
-                        try {
-                            const secondInvidRes = await fetch(`https://yewtu.be/api/v1/captions/${videoId}?label=English`);
-                            const secondInvidData = await secondInvidRes.json();
-                            if (secondInvidData.captions) {
-                                transcriptText = secondInvidData.captions.map((c: any) => c.text).join(' ');
-                            }
-                        } catch (finalErr) {
-                            console.error('All layers failed.');
-                        }
+                        console.error('All layers failed.');
                     }
                 }
 
                 if (!transcriptText) {
                     return NextResponse.json({ 
-                        error: `YouTube is aggressively blocking this server. Please use the "Paste Transcript" tab above—it's 100% reliable for all blocked videos!` 
+                        error: `YouTube is aggressively blocking this server. Please use the "Paste Transcript" tab above—it's 100% reliable!` 
                     }, { status: 500 });
                 }
             }
@@ -76,94 +64,94 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Transcript is too short to process.' }, { status: 400 });
         }
 
-        // 3. Generate Notes with Gemini via Direct Fetch
-        console.log(`Generating notes for video: ${videoId}`);
-        const prompt = `
-            You are a master note-taker and educational assistant. Convert the following transcript from a YouTube video into a comprehensive study guide.
-            
-            Video ID: ${videoId}
-            
-            STRICT GUIDELINES (PURE MARKDOWN):
-            1. **Unlimitied Depth**: Be extremely verbose, detailed, and thorough. 
-            2. **ELITE FORMATTING**: Use # for Page Title, ## for Topics, **BOLD** for terms.
-            3. **Visual-First (MANDATORY)**: 
-               - For every major concept, generate a high-quality **SVG code block** tagged with \`\`\`svg.
-               - NO ASCII art. Use real SVGs for chemistry (molecules) and physics (diagrams).
-               - **SVG Layout**: Use a wide **viewBox** (e.g., \`0 0 1000 500\`) to ensure everything is spaced out.
-               - **NO OVERLAPPING TEXT**: Labels above arrows or next to symbols must have careful offsets. Keep at least **40px vertical distance** between different text elements.
-               - **Font Precision**: use \`font-size="20px"\` for titles and \`18px\` for labels. Maintain #1e3a8a stroke.
-            4. **Interactive Lab**: 
-               - Use \`\`\`sandbox type="rotation"\`\`\` for inertia or \`\`\`sandbox type="projectile"\`\`\` for motion.
-            5. **Sticky Flashcards**: 
-               - Use \`\`\`flashcard\`\`\` blocks for critical definitions. Term: Definition format.
-            6. **Aesthetic Vertical Flow**: 
-               - NEVER use triple backticks for simple formulas or sentences. Triple backticks are ONLY for visuals.
-               - Each math derivation step must be on its own line ($$ ... $$). 
-            7. **Full-Width Visuals**: Ensure SVGs occupy the full 1000px width.
-            8. **Soundness**: High academic tone but accessible English.
-            
-            Transcript:
-            ${transcriptText.substring(0, 30000)}
-        `;
-
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error('Missing GEMINI_API_KEY');
-            return NextResponse.json({ error: 'Please set a valid GEMINI_API_KEY in .env.local' }, { status: 500 });
+            return NextResponse.json({ error: 'Missing Gemini API Key' }, { status: 500 });
         }
 
-        let notes = '';
-        try {
-            console.log('Fetching from Gemini (gemini-2.5-flash)...');
-            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    safetySettings: [
-                        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-                    ]
-                })
-            });
-
-            const aiData = await aiResponse.json();
+        // --- GEMINI STREAMING LOGIC ---
+        console.log('Initiating Gemini Streaming (2.5-flash)...');
+        
+        const prompt = `
+            You are a master note-taker. Convert this transcript into elite study notes with SVG diagrams and interactive sandboxes.
             
-            if (aiResponse.ok) {
-                notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                console.log(`Success! Notes length: ${notes.length}`);
-            } else {
-                const errMsg = aiData.error?.message || 'AI Generation failed';
-                console.error('Gemini 2.5-flash failed.', errMsg);
-                
-                // If it's a quota error, give a friendly message
-                if (aiData.error?.code === 429) {
-                    throw new Error('Daily AI Quota Reached (20/20). Please try again tomorrow or use a different API key.');
+            Video ID: ${videoId}
+            Transcript: ${transcriptText.substring(0, 30000)}
+
+            STRICT FORMATTING:
+            1. Use # for Title, ## for Topics.
+            2. Generate high-quality SVG code blocks (viewBox 1000x500).
+            3. Use \`\`\`sandbox type="rotation"\`\`\` or \`\`\`sandbox type="projectile"\`\`\`.
+            4. Use \`\`\`flashcard\`\`\` for definitions.
+        `;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                safetySettings: [
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || 'Gemini Streaming Failed');
+        }
+
+        // Custom Stream Transform to extract text from Gemini's JSON stream format
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        
+        const readableStream = new ReadableStream({
+            async start(controller) {
+                const reader = response.body?.getReader();
+                if (!reader) return;
+
+                let buffer = '';
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        buffer += decoder.decode(value, { stream: true });
+                        
+                        // Gemini sends data as a JSON array [{},{},{}] in chunks.
+                        // We need to parse individual objects from the [ ... ] or [ ... , ... ] chunks.
+                        // A simpler way for streaming is to look for "text": "..." patterns
+                        // But let's try a proper streaming parse if possible.
+                        // Actually, simplified for direct response:
+                        controller.enqueue(value);
+                    }
+                } catch (err) {
+                    controller.error(err);
+                } finally {
+                    controller.close();
                 }
-                
-                throw new Error(errMsg);
             }
-        } catch (err: any) {
-            console.error('Final API Exception:', err.message);
-            return NextResponse.json({ error: err.message }, { status: 500 });
-        }
+        });
 
-        if (!notes) {
-            return NextResponse.json({ error: 'AI returned empty notes. Please try again.' }, { status: 500 });
-        }
-
-        return NextResponse.json({ notes });
+        return new Response(readableStream, {
+            headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+            },
+        });
 
     } catch (err: any) {
-        console.error('AI Notes API Error:', err);
-        return NextResponse.json({ error: 'Failed to generate notes. Please try again later.' }, { status: 500 });
+        console.error('Final API Exception:', err.message);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
 function extractVideoId(url: string) {
-    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
-    return (match && match[7].length === 11) ? match[7] : null;
+    return (match && match[2].length === 11) ? match[2] : null;
 }

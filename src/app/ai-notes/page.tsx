@@ -116,23 +116,45 @@ export default function AiNotesPage() {
 
         setLoading(true);
         setError(null);
-        setNotes(null);
+        setNotes(''); // Initialize as empty for streaming
 
         try {
-            console.log('Generating notes...', isManual ? 'Manual Mode' : `URL: ${url}`);
+            console.log('Generating streaming notes...', isManual ? 'Manual Mode' : `URL: ${url}`);
             const response = await fetch('/api/ai-notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url }),
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
+                const data = await response.json();
                 throw new Error(data.error || 'Failed to generate notes');
             }
 
-            setNotes(data.notes);
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            if (!reader) throw new Error('No reader found');
+
+            let fullNotes = '';
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                
+                // Gemini Stream Extractor
+                // The stream contains chunks like: [{"candidates":[{"content":{"parts":[{"text":"hello"}]}}]}, ...]
+                // We'll use a regex to extract text fragments from the raw JSON chunks
+                const matches = chunk.matchAll(/"text":\s*"(.*?)"/g);
+                for (const match of matches) {
+                    let text = match[1];
+                    // Unescape JSON string characters
+                    text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+                    fullNotes += text;
+                    setNotes(fullNotes);
+                }
+            }
+            
             // Scroll to notes after a small delay to allow animation
             setTimeout(() => {
                 window.scrollTo({ top: window.innerHeight * 0.5, behavior: 'smooth' });
