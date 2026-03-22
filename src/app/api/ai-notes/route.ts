@@ -38,22 +38,21 @@ export async function POST(req: NextRequest) {
             Video ID: ${videoId}
             
             STRICT GUIDELINES FOR REVOLUTIONARY NOTES:
-            1. **Visual Quality**: Use H1 for the main title, H2 for major sections, and H3 for sub-topics.
-            2. **Emphasis**: **BOLD** every important term, definition, or key concept. Use "==term==" for highlights if you can, but standard **bold** is preferred for compatibility.
-            3. **Scientific Accuracy**: If the video describes any formulas, equations, or scientific laws, format them using LaTeX (e.g., $E=mc^{2}$ or $$\\frac{d}{dx}f(x)$$).
-            4. **Flowcharts & Diagrams**: If the video describes a process, a lifecycle, a hierarchy, or a step-by-step sequence, YOU MUST include a Mermaid.js flowchart.
-               Example:
-               \`\`\`mermaid
-               graph TD
-               A[Step 1] --> B[Step 2]
-               B --> C{Decision}
-               C -->|Yes| D[Result]
-               \`\`\`
+            1. **Visual Quality**: Use H1 for the main title, H2 for major sections, and H3 for sub-topics. Use emojis for a premium feel.
+            2. **Emphasis**: **BOLD** every important term. Example: **Artificial Intelligence**.
+            3. **Scientific Accuracy (CRITICAL)**: If the video describes any formulas, equations, or scientific laws, YOU MUST use LaTeX.
+               - DO NOT wrap LaTeX in code blocks. Use raw delimiters.
+               - For DISPLAY MATH (centered): Use \`$$\` on new lines. Example:
+                 $$ E = mc^2 $$
+               - For INLINE MATH: Use \`$\`. Example: $x + y = z$.
+            4. **Flowcharts & Diagrams (CRITICAL)**: If the video describes a process, hierarchy, or sequence, YOU MUST include a Mermaid.js flowchart.
+               - SYNTAX: Use \`\`\`mermaid followed by a valid graph (e.g., graph TD).
+               - DO NOT use any other labels for diagrams.
             5. **Educational Content**:
-               - **Executive Summary**: A punchy, 3-sentence summary of the core value.
-               - **Key Takeaways**: A bulleted list of the "golden nuggets" of information.
-               - **Detailed Deep Dive**: The meat of the notes, organized logically.
-               - **Active Recall**: Create 5 conceptual Flashcards (Question/Answer) and a 3-question Multiple Choice Quiz.
+               - **Executive Summary**: Punchy 3-sentence summary.
+               - **Key Takeaways**: Bulleted list of the most important concepts.
+               - **Detailed Deep Dive**: Comprehensive, logical notes with highlights.
+               - **Active Recall**: 5 conceptual Flashcards and a 3-question Quiz.
             
             Tone: Professional, encouraging, and highly academic yet accessible.
             

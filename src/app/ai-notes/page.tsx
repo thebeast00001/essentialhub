@@ -37,24 +37,30 @@ if (typeof window !== 'undefined') {
 const MermaidComponent = ({ chart }: { chart: string }) => {
     const ref = useRef<HTMLDivElement>(null);
     const [svg, setSvg] = useState('');
+    const [error, setError] = useState(false);
 
     useEffect(() => {
-        const render = async () => {
-            if (ref.current && chart) {
-                try {
-                    const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-                    const { svg } = await mermaid.render(id, chart);
-                    setSvg(svg);
-                } catch (err) {
-                    console.error('Mermaid render error:', err);
-                }
+        const renderChart = async () => {
+            if (!chart) return;
+            try {
+                const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+                // Clean up the chart string (remove any lingering markdown backticks)
+                const cleanChart = chart.trim().replace(/^```mermaid\n?/, '').replace(/\n?```$/, '');
+                const { svg } = await mermaid.render(id, cleanChart);
+                setSvg(svg);
+                setError(false);
+            } catch (err) {
+                console.error('Mermaid render error:', err);
+                setError(true);
             }
         };
-        render();
+        renderChart();
     }, [chart]);
 
+    if (error) return <pre className={styles.mermaidError}>{chart}</pre>;
+
     return (
-        <div className={styles.mermaidContainer} ref={ref}>
+        <div className={styles.mermaidContainer}>
             <div dangerouslySetInnerHTML={{ __html: svg }} />
         </div>
     );
@@ -199,45 +205,60 @@ export default function AiNotesPage() {
                 {notes && !loading && (
                     <motion.div 
                         key="notes"
-                        className={styles.notesWrapper}
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 20 }}
                     >
-                        <div className={styles.notesHeader}>
-                            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>AI Performance Report</h2>
-                            <div className={styles.actionBar}>
-                                <button className={styles.actionBtn} onClick={copyToClipboard}>
-                                    {copied ? <Check size={16} /> : <Copy size={16} />}
-                                    {copied ? 'Copied!' : 'Copy'}
-                                </button>
-                                <button className={styles.actionBtn} onClick={downloadAsTxt}>
-                                    <Download size={16} />
-                                    Download .md
-                                </button>
+                        <div className={styles.notesWrapper}>
+                            <div className={styles.zenithSeal}>
+                                ZENITH AI<br/>CERTIFIED<br/>NOTES
                             </div>
-                        </div>
+                            <div className={styles.notesHeader}>
+                                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>AI Study Report</h2>
+                                <div className={styles.actionBar}>
+                                    <button className={styles.actionBtn} onClick={copyToClipboard}>
+                                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                                        {copied ? 'Copied!' : 'Copy'}
+                                    </button>
+                                    <button className={styles.actionBtn} onClick={downloadAsTxt}>
+                                        <Download size={16} />
+                                        Download .md
+                                    </button>
+                                </div>
+                            </div>
 
-                        <div className={styles.markdownBody}>
-                            <ReactMarkdown 
-                                remarkPlugins={[remarkGfm, remarkMath]}
-                                rehypePlugins={[rehypeKatex]}
-                                components={{
-                                    code({ node, className, children, ...props }) {
-                                        const match = /language-(\w+)/.exec(className || '');
-                                        if (match && match[1] === 'mermaid') {
-                                            return <MermaidComponent chart={String(children).replace(/\n$/, '')} />;
+                            <div className={styles.markdownBody}>
+                                <ReactMarkdown 
+                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                    components={{
+                                        code({ node, inline, className, children, ...props }: any) {
+                                            const match = /language-(\w+)/.exec(className || '');
+                                            const isMermaid = match && match[1] === 'mermaid';
+                                            
+                                            if (isMermaid) {
+                                                const chart = String(children).replace(/\n$/, '');
+                                                return <MermaidComponent chart={chart} />;
+                                            }
+
+                                            return inline ? (
+                                                <code className={className} {...props}>
+                                                    {children}
+                                                </code>
+                                            ) : (
+                                                <pre className={styles.codeBlock}>
+                                                    <code className={className} {...props}>
+                                                        {children}
+                                                    </code>
+                                                </pre>
+                                            );
                                         }
-                                        return (
-                                            <code className={className} {...props}>
-                                                {children}
-                                            </code>
-                                        );
-                                    }
-                                }}
-                            >
-                                {notes}
-                            </ReactMarkdown>
+                                    }}
+                                >
+                                    {notes}
+                                </ReactMarkdown>
+                            </div>
                         </div>
                     </motion.div>
                 )}

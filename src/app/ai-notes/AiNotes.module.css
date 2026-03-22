@@ -39,34 +39,41 @@
 }
 
 /* ─── Search Section ───────────────────────────────────── */
-.searchBox {
+.searchSection {
+    margin-bottom: 60px;
+    z-index: 20;
     position: relative;
-    max-width: 800px;
-    margin: 0 auto 60px;
-    display: flex;
-    gap: 12px;
-    padding: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-glass);
-    border-radius: 20px;
+}
+
+.searchBox {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-xl), 0 0 40px rgba(var(--accent-rgb), 0.05);
+    border-radius: 40px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 900px;
+    margin: 0 auto;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
 }
 
 .searchBox:focus-within {
+    background: rgba(255, 255, 255, 0.05);
     border-color: var(--accent-primary);
-    box-shadow: var(--shadow-xl), 0 0 50px rgba(var(--accent-rgb), 0.15);
+    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.15);
     transform: translateY(-2px);
 }
 
 .input {
-    flex: 1;
     background: transparent;
     border: none;
-    padding: 12px 20px;
-    color: var(--text-primary);
+    color: #fff;
+    padding: 16px 20px;
     font-size: 1.1rem;
+    flex-grow: 1;
     outline: none;
 }
 
@@ -75,11 +82,11 @@
 }
 
 .generateBtn {
-    padding: 12px 32px;
-    background: var(--accent-primary);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #4f46e5 100%);
+    color: #fff;
     border: none;
-    border-radius: 14px;
+    padding: 14px 28px;
+    border-radius: 32px;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
@@ -91,8 +98,8 @@
 }
 
 .generateBtn:hover:not(:disabled) {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.4);
 }
 
 .generateBtn:active:not(:disabled) {
@@ -150,191 +157,172 @@
     margin-top: -16px;
 }
 
-/* ─── Notes Content (Paper Aesthetic) ─────────────────── */
+/* ─── Notes Content (Premium Notebook Aesthetic) ─────── */
 .notesWrapper {
-    background: #fff;
+    background: #fdfdfd;
+    background-image: 
+        linear-gradient(90deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
+        linear-gradient(#eee .1em, transparent .1em);
+    background-size: 100% 100%, 100% 2.2em;
     color: #334155;
     border: 1px solid #e2e8f0;
-    border-radius: 2px; /* Less rounded for paper feel */
-    padding: 60px 80px;
-    min-height: 800px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 80px 100px;
+    min-height: 1000px;
+    box-shadow: 
+        0 1px 1px rgba(0,0,0,0.1), 
+        0 4px 8px rgba(0,0,0,0.05),
+        0 12px 24px rgba(0,0,0,0.05);
     position: relative;
-    overflow: hidden;
-    line-height: 1.8;
+    overflow: visible;
+    line-height: 2.2em; /* Sync with background-size */
 }
 
-/* Ruled paper lines */
+/* Binder rings / Holes effect */
 .notesWrapper::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background-image: linear-gradient(#f1f5f9 1.1px, transparent 1.1px);
-    background-size: 100% 2.2em; /* Matches line-height approx */
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.6;
+    top: 40px;
+    left: 20px;
+    bottom: 40px;
+    width: 30px;
+    background-image: radial-gradient(circle, #334155 40%, transparent 45%);
+    background-size: 30px 120px;
+    background-repeat: repeat-y;
+    opacity: 0.15;
+    z-index: 5;
 }
 
-/* Vertical margin line */
+/* Coffee stain / subtle texture */
 .notesWrapper::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 60px;
-    bottom: 0;
-    width: 2px;
-    background: #fee2e2;
-    z-index: 0;
+    inset: 0;
+    background: url('https://www.transparenttextures.com/patterns/paper.png');
+    opacity: 0.2;
     pointer-events: none;
+    z-index: 1;
 }
 
 .notesHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #cbd5e1;
+    margin-bottom: 60px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #cbd5e1;
     z-index: 10;
     position: relative;
 }
 
 .notesHeader h2 {
-    color: #1e293b;
-    font-size: 1.5rem;
-    letter-spacing: -0.01em;
-}
-
-.actionBar {
-    display: flex;
-    gap: 12px;
-}
-
-.actionBtn {
-    padding: 10px 18px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
-
-.actionBtn:hover {
-    background: #fff;
-    border-color: #cbd5e1;
-    color: #1e293b;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    font-family: var(--font-sans);
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .markdownBody {
     position: relative;
     z-index: 10;
     font-family: 'Caveat', cursive, sans-serif;
-    font-size: 1.45rem; /* Larger for handwritten look */
-    color: #1e3a8a; /* Blue ink feel */
+    font-size: 1.6rem;
+    color: #1e40af; /* Deep ink blue */
 }
 
 .markdownBody h1, .markdownBody h2, .markdownBody h3 {
+    font-family: var(--font-sans);
+    color: #0f172a;
+    font-weight: 900;
     margin-top: 1.5em;
     margin-bottom: 0.5em;
-    color: #0f172a;
-    font-family: var(--font-sans), system-ui, sans-serif; /* Keep headers clean but bold */
-    font-weight: 800;
+    line-height: 1.2;
 }
 
-.markdownBody h1 { font-size: 2.25rem; border-bottom: 2px solid #334155; }
-.markdownBody h2 { font-size: 1.75rem; color: #1e293b; border-bottom: 1px dashed #94a3b8; }
-.markdownBody h3 { font-size: 1.4rem; color: #334155; font-style: italic; }
-
-.markdownBody p {
-    margin-bottom: 1.5em;
-}
+.markdownBody h1 { font-size: 2.6rem; border-bottom: 4px solid #1e40af; display: inline-block; }
+.markdownBody h2 { font-size: 1.9rem; padding-bottom: 4px; border-bottom: 2px dashed #94a3b8; }
+.markdownBody h3 { font-size: 1.5rem; text-decoration: underline; text-decoration-color: #fbbf24; }
 
 .markdownBody strong {
     color: #1d4ed8;
-    background: rgba(254, 240, 138, 0.4); /* Subtle yellow highlight */
+    background: linear-gradient(120deg, rgba(254, 240, 138, 0.6) 0%, rgba(254, 240, 138, 0.6) 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 0.4em;
+    background-position: 0 85%;
     padding: 0 4px;
-    border-radius: 4px;
-}
-
-.markdownBody ul, .markdownBody ol {
-    margin-bottom: 1.5em;
-    padding-left: 30px;
 }
 
 .markdownBody li {
-    margin-bottom: 0.5em;
-    list-style-type: '✎ ';
+    list-style-type: '👉 ';
+    padding-left: 10px;
+    margin-bottom: 12px;
 }
 
-.markdownBody blockquote {
-    border-left: 6px solid #fbbf24;
-    background: #fffbeb;
-    padding: 24px;
-    margin: 40px 10px;
-    border-radius: 8px;
-    font-style: italic;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.02);
-}
-
-/* Formula Styling */
+/* Formula Container (Notebook Style) */
 .markdownBody :global(.katex-display) {
-    background: #f8fafc;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    margin: 24px 0;
-    overflow-x: auto;
-}
-
-/* Mermaid Styling */
-.mermaidContainer {
     background: #fff;
     padding: 30px;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    margin: 30px 0;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    box-shadow: 4px 4px 0px #cbd5e1;
+    margin: 40px 0;
+    font-family: serif !important; /* Keep formulas standard */
+    font-size: 1.2em;
+}
+
+.markdownBody :global(.katex) {
+    font-family: serif !important;
+}
+
+/* Mermaid Diagram (Notebook Style) */
+.mermaidContainer {
+    background: #fff;
+    padding: 40px;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    box-shadow: 6px 6px 0px #cbd5e1;
+    margin: 40px 0;
     display: flex;
     justify-content: center;
-    box-shadow: var(--shadow-sm);
-    overflow-x: auto;
+    position: relative;
 }
 
-.markdownBody pre {
-    background: #0f172a;
-    color: #f8fafc;
-    padding: 24px;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-family: var(--font-mono);
-    margin: 24px 0;
-    border: none;
+.mermaidContainer::before {
+    content: 'DIAGRAM';
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: #334155;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 4px;
 }
 
-/* Custom Highlight helper */
-.highlight {
-    background: linear-gradient(120deg, #fef08a 0%, #fef08a 100%);
-    background-repeat: no-repeat;
-    background-size: 100% 0.4em;
-    background-position: 0 80%;
+/* Blockquote (Sticky Note Style) */
+.markdownBody blockquote {
+    background: #fef9c3;
+    padding: 30px;
+    margin: 50px 20px;
+    border: 1px solid #fef08a;
+    border-left: 8px solid #facc15;
+    transform: rotate(-1deg);
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+    color: #713f12;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .notesWrapper { padding: 60px 40px; }
+    .notesWrapper::before { display: none; }
+}
+
 @media (max-width: 768px) {
-    .container { padding: 40px 16px; }
-    .title { font-size: 2rem; }
-    .notesWrapper { padding: 40px 20px; }
-    .markdownBody { font-size: 1.2rem; }
-    .notesWrapper::after { left: 40px; }
-    .searchBox { flex-direction: column; padding: 16px; border-radius: 24px; }
-    .generateBtn { width: 100%; justify-content: center; }
+    .markdownBody { font-size: 1.3rem; }
+    .notesHeader h2 { font-size: 1.2rem; }
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */
