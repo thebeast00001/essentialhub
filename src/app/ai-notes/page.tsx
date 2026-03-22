@@ -260,6 +260,16 @@ export default function AiNotesPage() {
                                         p({ node, children, ...props }: any) {
                                             return <div className={styles.markdownP} {...props}>{children}</div>;
                                         },
+                                        // Handle cases where AI generates <flashcard> or <sandbox> tags
+                                        flashcard({ node, children, ...props }: any) {
+                                            return <StickyFlashcard content={String(children)} />;
+                                        },
+                                        sandbox({ node, ...props }: any) {
+                                            const type = props.type || 'rotation';
+                                            if (type.includes('rotation') || type.includes('inertia')) return <MomentOfInertiaSandbox />;
+                                            if (type.includes('projectile') || type.includes('motion')) return <ProjectileSandbox />;
+                                            return <MomentOfInertiaSandbox />;
+                                        },
                                         code({ node, inline, className, children, ...props }: any) {
                                             const match = /language-(\w+)/.exec(className || '');
                                             const isMermaid = match && match[1] === 'mermaid';
@@ -306,7 +316,7 @@ export default function AiNotesPage() {
                                                 </div>
                                             );
                                         }
-                                    }}
+                                    } as any}
                                 >
                                     {cleanNotes(notes || "")}
                                 </ReactMarkdown>

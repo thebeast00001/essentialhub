@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
                - **MANDATORY SVG**: For every major concept, you MUST generate a high-quality **SVG code block**. 
                - **Chemistry Structures**: For molecules like Butane (C4H10), draw a proper structural formula using \`<line>\` and \`<text>\` tags inside the SVG. Show the bonds clearly.
                - **AESTHETICS**: Use \`stroke-width="2"\`, \`stroke="#1e3a8a"\`, and \`font-family="Caveat, cursive"\`.
-               - **CRITICAL FORMATTING**: Wrap your code explicitly in a \`\`\`svg block. 
+               - **STRICT RULE**: Use triple backticks (\` \` \`) to tag your blocks. **NEVER use HTML tags like <flashcard> or <sandbox>**, as these will crash the renderer.
                - Example Output:
                \`\`\`svg
                <div class="physics-diagram">
