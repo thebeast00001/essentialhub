@@ -55,11 +55,12 @@ export async function POST(req: NextRequest) {
             4. **Concept Maps (Mermaid)**:
                - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
                - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
-            5. **Derivations & Numericals**: 
-               - Every FULL formula/equation must be on a NEW LINE using Block LaTeX ($$ ... $$). 
-               - **CRITICAL**: Single variables in text (like mass $m$ or radius $r$) must be INLINE using Inline LaTeX ($ ... $). 
-               - NEVER put single variables on their own line. NEVER put them inside backticks or code blocks.
-               - Explain the logic of every transition clearly.
+            5. **Derivations & Numericals (STRICT FORMATTING)**: 
+               - **NEVER squish math together in a single paragraph.**
+               - **Break down steps using Bullet Points or Numbered Lists.** 
+               - Every major equation MUST be on its own line using Block LaTeX (\`$$ ... $$\`).
+               - **CRITICAL**: You MUST leave a blank empty line before AND after every \`$$\` block so it renders correctly. 
+               - Single variables in text ($m$, $r$) must be Inline LaTeX (\`$ ... $\`). 
             6. **Structured Tables**: Use Markdown Tables for comparative data.
             7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
             5. **Educational Content**:
