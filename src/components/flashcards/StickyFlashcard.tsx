@@ -29,12 +29,13 @@ export default function StickyFlashcard({ content }: { content: string }) {
             if (error) throw error;
             setSaved(true);
         } catch (e: any) {
-            console.error('SUPABASE SAVE DEBUG:', e);
-            if (e.message) console.error('Error Message:', e.message);
-            if (e.details) console.error('Error Details:', e.details);
-            if (e.hint) console.error('Error Hint:', e.hint);
+            console.error('SUPABASE SAVE DEBUG:', JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
             
-            alert(`Supabase Error: ${e.message || 'The "flashcards" table may be missing. Check the walkthrough for the SQL setup command.'}`);
+            // Try to find a message in common error object structures
+            const msg = e.message || (e.error && e.error.message) || e.statusText || 'Unknown Connection Error';
+            console.error('Resolved Error Message:', msg);
+            
+            alert(`Supabase Error: ${msg} \n\nCheck the console (F12) for detailed logs. This is likely due to the "flashcards" table missing the "user_id" or "content" columns.`);
             setSaved(false); 
         } finally {
             setSaving(false);
