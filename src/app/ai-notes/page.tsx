@@ -12,7 +12,8 @@ import {
     AlertCircle,
     Brain,
     Loader2,
-    ArrowLeft
+    ArrowLeft,
+    Library
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -25,6 +26,7 @@ import { clsx } from 'clsx';
 import Link from 'next/link';
 import mermaid from 'mermaid';
 import MomentOfInertiaSandbox from '@/components/sandboxes/MomentOfInertiaSandbox';
+import ProjectileSandbox from '@/components/sandboxes/ProjectileSandbox';
 import StickyFlashcard from '@/components/flashcards/StickyFlashcard';
 
 // Initialize mermaid (strictly localized to avoid breaking other app pages)
@@ -166,10 +168,16 @@ export default function AiNotesPage() {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    <Link href="/" className={styles.backLink} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '24px', fontSize: '0.9rem' }}>
-                        <ArrowLeft size={16} />
-                        Back to Dashboard
-                    </Link>
+                    <div className={styles.headerLinks}>
+                        <Link href="/" className={styles.backLink}>
+                            <ArrowLeft size={16} />
+                            Back to Dashboard
+                        </Link>
+                        <Link href="/ai-notes/flashcards" className={styles.libraryLink}>
+                            <Library size={16} />
+                            Your Study Deck
+                        </Link>
+                    </div>
                     <h1 className={styles.title}>
                         <Brain size={48} className={styles.titleIcon} />
                         AI Study Notes
@@ -267,6 +275,9 @@ export default function AiNotesPage() {
                                             if (isSandbox) {
                                                 if (contentStr.toLowerCase().includes('type="rotation"') || contentStr.toLowerCase().includes('type="inertia"')) {
                                                     return <MomentOfInertiaSandbox />;
+                                                }
+                                                if (contentStr.toLowerCase().includes('type="projectile"') || contentStr.toLowerCase().includes('type="motion"')) {
+                                                    return <ProjectileSandbox />;
                                                 }
                                                 return <MomentOfInertiaSandbox />;
                                             }

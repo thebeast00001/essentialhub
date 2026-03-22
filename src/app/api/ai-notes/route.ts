@@ -61,10 +61,11 @@ export async function POST(req: NextRequest) {
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
             4. **Interactive Sandbox Visualizers (HIGHLY RECOMMENDED)**:
                - You have the ability to embed live, dragging React simulations directly into the notebook!
-               - If your concept involves rotational motion, moment of inertia, or angular kinematics, YOU MUST inject the interactive visualizer.
+               - If your concept involves rotational motion or moment of inertia, use \`type="rotation"\`.
+               - If your concept involves projectile motion, kinematics, or parabolic trajectories, use \`type="projectile"\`.
                - To inject it, simply write an empty code block tagged with \`sandbox\` and specify the \`type\`.
                - Example Output:
-               \`\`\`sandbox type="rotation"
+               \`\`\`sandbox type="projectile"
                \`\`\`
                - **CRITICAL**: The Sandbox code block must have a blank empty line before and after it to render correctly.
             5. **Tear-away Sticky Note Flashcards (MANDATORY)**:

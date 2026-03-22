@@ -16,6 +16,49 @@
     text-align: center;
 }
 
+.headerLinks {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.backLink, .libraryLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.backLink {
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.backLink:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(-4px);
+}
+
+.libraryLink {
+    color: #fff;
+    background: linear-gradient(135deg, #4f46e5 0%, #1e40af 100%);
+    border: none;
+}
+
+.libraryLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+}
+
 .title {
     font-size: clamp(2.5rem, 5vw, 3.5rem);
     font-weight: 800;
