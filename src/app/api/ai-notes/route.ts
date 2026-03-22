@@ -38,58 +38,40 @@ export async function POST(req: NextRequest) {
             Video ID: ${videoId}
             
             STRICT GUIDELINES FOR MASTER-CLASS STUDY NOTES (PURE MARKDOWN):
-            1. **Unlimitied Depth**: You have infinite space. Be extremely verbose, detailed, and thorough. Explain every concept from the ground up like a world-class mentor.
+            1. **Unlimitied Depth**: You have infinite space. Be extremely verbose, detailed, and thorough. Explain every concept from the ground up.
             2. **ELITE FORMATTING**: 
-               - DO NOT use "style" attributes or color names in your text.
                - Use \`#\` for the Page Title.
                - Use \`##\` for Main Topics (rendered in Black Ink).
-               - Use \`###\` for Sub-topics (rendered in Black Ink with Red Underline).
                - Use \`**BOLD**\` for important terms (rendered in Blue Ink with Red Underline).
-            3. **Physics Illustrations (MANDATORY & HIGH QUALITY)**: 
-               - For physical setups (wheels, vectors, rigid bodies), generate deeply detailed, beautiful **SVG code**.
-               - **AESTHETICS**: Use \`<marker>\` for sharp arrowheads on vectors. Use \`stroke-dasharray\` for axes of rotation or invisible lines. Use \`fill-opacity="0.2"\` for overlapping semi-transparent 3D depth (like discs or spheres).
-               - **COLORS**: strictly use \`#1e40af\` (blue), \`#dc2626\` (red), and \`#0f172a\` (black) for your strokes and text. Set \`font-family="Caveat, cursive"\` inside your SVG text tags to match the handwriting!
-               - **CRITICAL FORMATTING**: You MUST wrap your HTML/SVG explicitly in a \`\`\`svg code block. DO NOT output loose raw HTML into the markdown body, as it crashes the React Virtual DOM.
+            3. **Visual-First Pedagogy (CRITICAL)**: 
+               - **NEVER use ASCII art or plain code blocks** to show structures (like chemical molecules or circuits). 
+               - **MANDATORY SVG**: For every major concept, you MUST generate a high-quality **SVG code block**. 
+               - **Chemistry Structures**: For molecules like Butane (C4H10), draw a proper structural formula using \`<line>\` and \`<text>\` tags inside the SVG. Show the bonds clearly.
+               - **AESTHETICS**: Use \`stroke-width="2"\`, \`stroke="#1e3a8a"\`, and \`font-family="Caveat, cursive"\`.
+               - **CRITICAL FORMATTING**: Wrap your code explicitly in a \`\`\`svg block. 
                - Example Output:
                \`\`\`svg
                <div class="physics-diagram">
-                 <svg viewBox="0 0 400 200">
-                    ...
-                 </svg>
+                 <svg viewBox="0 0 400 200"> ... </svg>
                </div>
                \`\`\`
-               - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
-            4. **Interactive Sandbox Visualizers (HIGHLY RECOMMENDED)**:
-               - You have the ability to embed live, dragging React simulations directly into the notebook!
-               - If your concept involves rotational motion or moment of inertia, use \`type="rotation"\`.
-               - If your concept involves projectile motion, kinematics, or parabolic trajectories, use \`type="projectile"\`.
-               - To inject it, simply write an empty code block tagged with \`sandbox\` and specify the \`type\`.
-               - Example Output:
+            4. **Interactive Sandbox Visualizers (PRIORITY)**:
+               - If the topic involves motion, kinematics, or rotation, **INJECT A SANDBOX IMMEDIATELY**. Do not use text to explain what the animation can show.
+               - Use \`type="rotation"\` for inertia/rotation and \`type="projectile"\` for kinematics/parabolic motion.
+               - Example:
                \`\`\`sandbox type="projectile"
                \`\`\`
-               - **CRITICAL**: The Sandbox code block must have a blank empty line before and after it to render correctly.
-            5. **Tear-away Sticky Note Flashcards (MANDATORY)**:
-               - Identify the absolute most critical definition or final formula of the topic.
-               - Output this wrapped in a custom code block tagged as \`flashcard\`.
-               - The first line MUST contain the Term followed by a colon. Subsequent lines contain the definition.
-               - Example Output:
-               \`\`\`flashcard
-               Torque:
-               The rotational equivalent of linear force. Calculate using $\tau = r \times F$.
-               \`\`\`
-            6. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
-               - **NEVER WRITE HUGE PARAGRAPHS.** Use short, simple sentences.
-               - **NEVER squish math or derivation steps together horizontally.**
-               - When demonstrating steps (e.g., plugging in values), **EACH STEP MUST BE ON A NEW LINE.**
-               - Use \`$$\` for any equation involving fractions, integrations, or multiple terms.
-               - **CRITICAL**: You MUST leave a blank empty line before AND after every \`$$\` block and \`\`\`svg block so it renders correctly. 
-               - Single variables in text ($m$, $r$) must be Inline LaTeX (\`$ ... $\`). 
-            6. **Structured Tables**: Use Markdown Tables for comparative data.
-            7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
-            5. **Educational Content**:
-               - **Executive Summary**: 3-sentence summary of the physics/math/topic.
-               - **Key Takeaways**: Bulleted conceptual "nuggets".
-               - **Detailed Deep Dive**: Comprehensive notes with step-by-step numericals.
+            5. **Tear-away Sticky Note Flashcards**:
+               - Identify the most critical definition or formula. Output it wrapped in a \`flashcard\` block.
+               - First line must be "Term: Definition".
+            6. **Verical Physics Flow**: 
+               - **Horizontal Squishing is Forbidden.** Each math step, each derivation line, and each logic point must be on its own line.
+               - Use \`$$\` for complex equations. Leave a blank line before and after.
+            7. **Structured Layout**:
+               - **Executive Summary**: 3 sentences maximum.
+               - **Key Takeaways**: Bullet points.
+               - **Visual Deep Dive**: Alternating between SVG diagrams and Vertical explanation.
+               - **Interactive Lab**: Inject a Sandbox here if applicable.
                - **Active Recall**: 5 Flashcards and a 3-question Quiz.
             
             Tone: Professional, encouraging, and highly academic yet accessible.
