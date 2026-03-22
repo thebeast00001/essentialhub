@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
 
         let notes = '';
         try {
-            console.log('Fetching from Gemini (gemini-1.5-flash)...');
-            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            console.log('Fetching from Gemini (gemini-2.5-flash)...');
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -88,8 +88,21 @@ export async function POST(req: NextRequest) {
                 notes = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 console.log(`Success! Notes length: ${notes.length}`);
             } else {
-                console.error('Gemini 1.5-flash failed.', aiData.error?.message);
-                throw new Error(aiData.error?.message || 'AI Generation failed');
+                console.warn('Gemini 2.5-flash failed, trying fallback 1.5-flash...', aiData.error?.message);
+                const secondResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                const secondData = await secondResponse.json();
+                if (secondResponse.ok) {
+                    notes = secondData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                } else {
+                    console.error('All AI models failed.', secondData.error?.message);
+                    throw new Error(secondData.error?.message || 'AI Generation failed');
+                }
             }
         } catch (err: any) {
             console.error('Final API Exception:', err.message);
