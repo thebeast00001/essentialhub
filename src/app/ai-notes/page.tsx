@@ -149,12 +149,6 @@ export default function AiNotesPage() {
     const cleanNotes = (content: string) => {
         if (!content) return "";
         return content
-            // Remove any backticks that wrap our custom diagram classes
-            .replace(/```(?:html|svg|xml)?\n?([\s\S]*?<div class="physics-diagram">[\s\S]*?<\/div>)\n?```/gi, '$1')
-            // Remove backticks around naked svg tags 
-            .replace(/```(?:html|svg|xml)?\n?([\s\S]*?<svg[\s\S]*?<\/svg>[\s\S]*?)\n?```/gi, '$1')
-            // Remove backticks around naked defs, line, etc. tags, if any escaped
-            .replace(/```(?:html|svg|xml)?\n?(<(?:defs|line|rect|circle|polygon|path|text)[\s\S]*?>)\n?```/gi, '$1')
             // Special case: sometimes AI puts backticks around KaTeX blocks
             .replace(/```latex\n?([\s\S]*?)\n?```/gi, '$1');
     };

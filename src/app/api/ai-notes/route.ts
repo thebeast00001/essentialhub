@@ -39,9 +39,7 @@ export async function POST(req: NextRequest) {
             
             STRICT GUIDELINES FOR MASTER-CLASS STUDY NOTES (PURE MARKDOWN):
             1. **Unlimitied Depth**: You have infinite space. Be extremely verbose, detailed, and thorough. Explain every concept from the ground up like a world-class mentor.
-            2. **ELITE FORMATTING (NO BACKTICKS)**: 
-               - USE PURE MARKDOWN ONLY. 
-               - **CRITICAL**: NEVER use backticks (\` \` \`) for SVG or HTML blocks. Output them as raw text directly in your markdown response.
+            2. **ELITE FORMATTING**: 
                - DO NOT use "style" attributes or color names in your text.
                - Use \`#\` for the Page Title.
                - Use \`##\` for Main Topics (rendered in Black Ink).
@@ -49,9 +47,16 @@ export async function POST(req: NextRequest) {
                - Use \`**BOLD**\` for important terms (rendered in Blue Ink with Red Underline).
             3. **Physics Illustrations (MANDATORY)**: 
                - For physical setups (wheels, vectors, rigid bodies), generate clean **SVG code**.
-               - **NO BACKTICKS** for SVGs. Output raw \`<div class="physics-diagram">\n<svg viewBox="0 0 400 200">\n...\n</svg>\n</div>\`.
-               - **CRITICAL**: Do NOT indent your SVG code with spaces or tabs. Start the \`<div...\` and \`<svg>\` directly at the beginning of the line. Indenting causes the system to render it as a raw code block!
-               - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, etc.) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags. NEVER output loose SVG tags.
+               - **CRITICAL FORMATTING**: You MUST wrap your HTML/SVG explicitly in a \`\`\`svg or \`\`\`html code block. DO NOT output loose raw HTML into the markdown body, as it crashes the React Virtual DOM (due to properties like font-size).
+               - Example Output:
+               \`\`\`svg
+               <div class="physics-diagram">
+                 <svg viewBox="0 0 400 200">
+                    ...
+                 </svg>
+               </div>
+               \`\`\`
+               - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
             4. **Concept Maps (Mermaid)**:
                - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
                - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
