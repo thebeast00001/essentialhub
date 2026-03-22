@@ -19,42 +19,42 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
             }
 
-            // 2. Fetch Transcript with Advanced Browser Simulation
+            // 2. Fetch Transcript with Multi-Layer Fallback
             try {
-                console.log(`Fetching transcript for: ${videoId} (Production Scraper Mode)`);
-                // Use the library but with a much wider retry/language strategy
-                const transcript = await YoutubeTranscript.fetchTranscript(videoId, { 
-                    lang: 'en' 
-                }).catch(() => YoutubeTranscript.fetchTranscript(videoId, { lang: 'hi' }))
-                  .catch(() => YoutubeTranscript.fetchTranscript(videoId));
+                console.log(`Layer 1: Primary Fetch for ${videoId}...`);
+                const transcript = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
+                    .catch(() => YoutubeTranscript.fetchTranscript(videoId, { lang: 'hi' }))
+                    .catch(() => YoutubeTranscript.fetchTranscript(videoId)); 
                 
                 transcriptText = transcript.map(t => t.text).join(' ');
             } catch (err: any) {
-                console.error('Library fetch failed. Trying raw-fetch fallback...', err.message);
+                console.warn('Layer 1 Blocked. Trying Layer 2 (Meta Recovery)...');
                 
-                // Fallback: Fetch metadata if transcript fails completely
-                // This gives Gemini some context (title + description) if captions are truly blocked
                 try {
                     const pageResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
                         headers: {
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                            'Accept-Language': 'en-US,en;q=0.9'
                         }
                     });
                     const html = await pageResponse.text();
-                    // Attempt to extract title/desc as a "barebones" transcript if nothing else works
-                    const titleMatch = html.match(/<title>(.*?)<\/title>/);
-                    const title = titleMatch?.[1]?.replace(' - YouTube', '') || '';
-                    if (title && !transcriptText) {
-                        transcriptText = `[AUTO-RECOVERY MODE] Title: ${title}. (Captions were unavailable, generating based on video context).`;
+                    
+                    // Extract Title & Description (usually not blocked by simple bot detection)
+                    const title = html.match(/"title":\{"runs":\[\{"text":"(.*?)"\}\],/)?.[1] || 
+                                 html.match(/<title>(.*?)<\/title>/)?.[1]?.replace(' - YouTube', '') || '';
+                    
+                    const description = html.match(/"shortDescription":"(.*?)"/)?.[1] || '';
+                    
+                    if (description.length > 50) {
+                        transcriptText = `[META-NOTES MODE]\nTITLE: ${title}\nDESCRIPTION: ${description.replace(/\\n/g, '\n')}`;
+                        console.log('Layer 2 Success: Fetched Video Description as fallback.');
                     }
-                } catch (innerErr) {
-                    console.error('Recovery fetch failed:', innerErr);
+                } catch (metaErr) {
+                    console.error('Layer 2 Blocked:', metaErr);
                 }
 
                 if (!transcriptText) {
                     return NextResponse.json({ 
-                        error: `YouTube is blocking automated requests from this server. Try "Paste Transcript" mode!` 
+                        error: `YouTube is aggressively blocking this server. Switch to the "Paste Transcript" tab above—it's 100% reliable!` 
                     }, { status: 500 });
                 }
             }
