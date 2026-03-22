@@ -60,16 +60,17 @@ export async function POST(req: NextRequest) {
                \`\`\`
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
             4. **Concept Maps (Mermaid - HIGH QUALITY)**:
-               - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
+               - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK AND YOU MUST LEAVE A BLANK LINE BEFORE THE BLOCK STARTS. 
                - Design extremely educational, complex Concept Maps. Use varying shapes (e.g., rhombus \`{...}\` for decisions, cylinders \`[(...)]\` for data, asymmetric \`>...]\` for flow) to create highly structured knowledge graphs.
                - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
                - **CRITICAL**: DO NOT put double quotes INSIDE the label text itself (e.g. use single quotes instead).
                - **CRITICAL**: NEVER use Square Brackets \`[\` \`]\` inside the label text! Treat brackets as highly toxic. If you need brackets for math, use Parentheses \`()\` instead.
-            5. **Derivations & Numericals (STRICT FORMATTING)**: 
-               - **NEVER squish math together in a single paragraph.**
-               - **Break down steps using Bullet Points or Numbered Lists.** 
-               - Every major equation MUST be on its own line using Block LaTeX (\`$$ ... $$\`).
-               - **CRITICAL**: You MUST leave a blank empty line before AND after every \`$$\` block so it renders correctly. 
+            5. **Derivations & Numericals (SIMPLIFIED & VERTICAL)**: 
+               - **NEVER WRITE HUGE PARAGRAPHS.** Use short, simple sentences.
+               - **NEVER squish math or derivation steps together horizontally.**
+               - When demonstrating steps (e.g., plugging in values), **EACH STEP MUST BE ON A NEW LINE.**
+               - Use \`$$\` for any equation involving fractions, integrations, or multiple terms.
+               - **CRITICAL**: You MUST leave a blank empty line before AND after every \`$$\` block, \`\`\`svg block, and \`\`\`mermaid block so it renders correctly. 
                - Single variables in text ($m$, $r$) must be Inline LaTeX (\`$ ... $\`). 
             6. **Structured Tables**: Use Markdown Tables for comparative data.
             7. **Logical Soundness**: Do not use technical jargon without explanation. Use warm, educational English.
