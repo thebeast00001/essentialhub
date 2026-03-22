@@ -40,25 +40,33 @@ export async function POST(req: NextRequest) {
                         transcriptText = `[META-NOTES MODE]\nTITLE: ${videoId}\nDESCRIPTION: ${description.replace(/\\n/g, '\n')}`;
                     }
                 } catch (metaErr) {
-                    console.error('Layer 2 Blocked. Trying Layer 3 (Proxy-Tunnel)...');
+                    console.error('Layer 2 Blocked. Trying Layer 3 (Invidious Proxy API)...');
                     
                     try {
-                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
-                        const proxyResponse = await fetch(proxyUrl);
-                        const proxyHtml = await proxyResponse.text();
-                        const proxyDesc = proxyHtml.match(/"shortDescription":"(.*?)"/)?.[1] || '';
-                        if (proxyDesc.length > 50) {
-                            transcriptText = `[PROXY-NOTES MODE]\nDESCRIPTION: ${proxyDesc.replace(/\\n/g, '\n')}`;
-                            console.log('Layer 3 Success: Tunneled through proxy.');
+                        // Use an open-source Invidious instance API which is specifically made to bypass blocks
+                        const invidiousRes = await fetch(`https://invidious.snopyta.org/api/v1/captions/${videoId}?label=English`);
+                        const invidiousData = await invidiousRes.json();
+                        if (invidiousData.captions && invidiousData.captions.length > 0) {
+                            transcriptText = invidiousData.captions.map((c: any) => c.text).join(' ');
+                            console.log('Layer 3 Success: Fetched via Invidious Proxy.');
                         }
                     } catch (proxyErr) {
-                        console.error('Layer 3 also blocked:', proxyErr);
+                        // Last ditch: try one more instance
+                        try {
+                            const secondInvidRes = await fetch(`https://yewtu.be/api/v1/captions/${videoId}?label=English`);
+                            const secondInvidData = await secondInvidRes.json();
+                            if (secondInvidData.captions) {
+                                transcriptText = secondInvidData.captions.map((c: any) => c.text).join(' ');
+                            }
+                        } catch (finalErr) {
+                            console.error('All layers failed.');
+                        }
                     }
                 }
 
                 if (!transcriptText) {
                     return NextResponse.json({ 
-                        error: `YouTube is aggressively blocking this server. Switch to the "Paste Transcript" tab above—it's 100% reliable!` 
+                        error: `YouTube is aggressively blocking this server. Please use the "Paste Transcript" tab above—it's 100% reliable for all blocked videos!` 
                     }, { status: 500 });
                 }
             }
