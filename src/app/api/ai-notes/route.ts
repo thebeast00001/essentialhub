@@ -45,9 +45,11 @@ export async function POST(req: NextRequest) {
                - Use \`##\` for Main Topics (rendered in Black Ink).
                - Use \`###\` for Sub-topics (rendered in Black Ink with Red Underline).
                - Use \`**BOLD**\` for important terms (rendered in Blue Ink with Red Underline).
-            3. **Physics Illustrations (MANDATORY)**: 
-               - For physical setups (wheels, vectors, rigid bodies), generate clean **SVG code**.
-               - **CRITICAL FORMATTING**: You MUST wrap your HTML/SVG explicitly in a \`\`\`svg or \`\`\`html code block. DO NOT output loose raw HTML into the markdown body, as it crashes the React Virtual DOM (due to properties like font-size).
+            3. **Physics Illustrations (MANDATORY & HIGH QUALITY)**: 
+               - For physical setups (wheels, vectors, rigid bodies), generate deeply detailed, beautiful **SVG code**.
+               - **AESTHETICS**: Use \`<marker>\` for sharp arrowheads on vectors. Use \`stroke-dasharray\` for axes of rotation or invisible lines. Use \`fill-opacity="0.2"\` for overlapping semi-transparent 3D depth (like discs or spheres).
+               - **COLORS**: strictly use \`#1e40af\` (blue), \`#dc2626\` (red), and \`#0f172a\` (black) for your strokes and text. Set \`font-family="Caveat, cursive"\` inside your SVG text tags to match the handwriting!
+               - **CRITICAL FORMATTING**: You MUST wrap your HTML/SVG explicitly in a \`\`\`svg code block. DO NOT output loose raw HTML into the markdown body, as it crashes the React Virtual DOM.
                - Example Output:
                \`\`\`svg
                <div class="physics-diagram">
@@ -57,8 +59,9 @@ export async function POST(req: NextRequest) {
                </div>
                \`\`\`
                - **CRITICAL**: ALL shapes (\`<line>\`, \`<circle>\`, \`<defs>\`, \`<text>\`) MUST be properly enclosed INSIDE the \`<svg> ... </svg>\` tags.
-            4. **Concept Maps (Mermaid)**:
+            4. **Concept Maps (Mermaid - HIGH QUALITY)**:
                - **CRITICAL**: YOU MUST USE \`\`\`mermaid TO START A MERMAID BLOCK. 
+               - Design extremely educational, complex Concept Maps. Use varying shapes (e.g., rhombus \`{...}\` for decisions, cylinders \`[(...)]\` for data, asymmetric \`>...]\` for flow) to create highly structured knowledge graphs.
                - If a node label contains spaces, ampersands (&), or parentheses (), YOU MUST WRAP IT IN DOUBLE QUOTES. 
                - **CRITICAL**: DO NOT put double quotes INSIDE the label text itself (e.g. use single quotes instead).
                - **CRITICAL**: NEVER use Square Brackets \`[\` \`]\` inside the label text! Treat brackets as highly toxic. If you need brackets for math, use Parentheses \`()\` instead.
