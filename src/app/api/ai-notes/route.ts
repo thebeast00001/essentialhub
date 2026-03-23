@@ -71,28 +71,23 @@ export async function POST(req: NextRequest) {
 
         // --- ELITE PROMPT DESIGN ---
         const prompt = `
-            You are a World-Class Academic Professor. Your task is to generate the most ULTIMATE, HIGH-DENSITY, and VISUALLY STUNNING study guide based on the provided transcript.
+            You are a World-Class Academic Professor. Your task is to generate the most ULTIMATE, EXHAUSTIVE, and HIGH-DENSITY study guide.
             
             Video ID: ${videoId}
-            Transcript Data (30k chars): ${transcriptText.substring(0, 30000)}
+            Transcript Data: ${transcriptText}
 
-            GOAL: Create the most authoritative, professional, and easy-to-learn study guide ever made.
+            STRICT MISSION: Give me the longest, most detailed notes possible. DO NOT summarize. If a 5-hour video is provided, I want a massive, multi-page guide.
 
-            ELITE STRUCTURAL RULES:
-            1. **The Executive Summary**: Start with a high-level overview ($# Executive Summary). Identify the 3 core "Mind-Blowing" concepts introduced.
-            2. **Deep Academic Breakdown**: DO NOT summarize. Use high-density, rigorous academic language. Convert every technical point, nuance, and derivation into a detailed section.
-            3. **Vector Masterpieces (SVG)**: Generate 2-4 professional-grade diagrams in \`\`\`svg blocks.
-               - **Physics**: Force diagrams, orbital paths, or pendulum mechanics.
-               - **Chemistry**: Skeletal molecular structures (e.g., Benzene, Glucose).
-               - **Biology**: Cell structures or DNA strands.
-               - Use \`<g transform="translate(500, 250)">\` to center everything. 
-               - Use high-contrast colors (Deep Blue for main, Indigo for accents).
-            4. **Formula Excellence (LaTeX)**: Every derivation must be painstakingly clear. Wrap all math in $$...$$. 
-               - DO NOT use the word "ext" inside LaTeX. Use \`\\mathrm{...}\` for multi-character terms.
+            CRITICAL FORMATTING RULES:
+            1. **LaTeX Warning**: NEVER put a space after a backslash. Write \`\\frac\`, NOT \`\\ frac\`. Write \`\\mathrm\`, NOT \`\\ mathrm\`. Write \`\\times\`, NOT \`\\ imes\`.
+            2. **The Executive Summary**: Start with a high-level overview ($# Executive Summary).
+            3. **Vector Masterpieces (SVG)**: Generate 3-5 professional diagrams in \`\`\`svg blocks.
+               - Center everything using \`<g transform="translate(500, 250)">\`.
+            4. **Formula Excellence**: Every single derivation must be shown. Use $$...$$ on new lines.
             5. **Interactive Stickers**: 
-               - Insert at least 2 sandboxes: \`\`\`sandbox type="bond"\`\`\` for chemistry or \`\`\`sandbox type="rotation"\`\`\` for physics.
-               - Insert 5+ gold-standard flashcards: \`\`\`flashcard Question? | Answer! \`\`\`.
-            6. **Tone**: Direct, authoritative, encouraging, and elite. No "fluff".
+               - Insert at least 3 sandboxes: \`\`\`sandbox type="bond"\`\`\` (Chemistry) or \`\`\`sandbox type="rotation"\`\`\` (Physics).
+               - Insert 10+ flashcards: \`\`\`flashcard Question? | Answer! \`\`\`.
+            6. **Tone**: Authoritative, elite, and exhaustive.
         `;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {

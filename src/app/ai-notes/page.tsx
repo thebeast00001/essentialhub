@@ -139,7 +139,7 @@ export default function AiNotesPage() {
         return null;
     };
 
-    // 🧼 MASTER CLEANUP: Fixes Unicode, JSON artifacts, and formatting glitches
+    // 🧼 MASTER CLEANUP: Fixes Unicode, JSON artifacts, and LaTeX spacing glitches
     const cleanNotes = (content: string) => {
         if (!content) return "";
         
@@ -160,12 +160,16 @@ export default function AiNotesPage() {
             .replace(/\\t/g, '\t')
             .replace(/\\\\/g, '\\');
 
-        // 3. Special Case: Remove "ext" prefixes or leftovers from LaTeX AI generation
-        // This often happens when the AI tries to use \text{} or similar
-        cleaned = cleaned.replace(/ ext([A-Z])/g, ' $1');
-        cleaned = cleaned.replace(/ext([A-Z])/g, '$1');
+        // 3. CRITICAL: Fix LaTeX spacing error (e.g. \ frac -> \frac, \ imes -> \times)
+        // Look for backslash followed by a space and then common LaTeX command starts or 'imes', 'eq', etc.
+        cleaned = cleaned.replace(/\\ \s*(\w+)/g, '\\$1');
+        
+        // 4. Special Case Cleanup
+        cleaned = cleaned.replace(/\ imes/g, '\\times');
+        cleaned = cleaned.replace(/\ eq /g, ' = ');
+        cleaned = cleaned.replace(/ ext /g, ' text ');
 
-        // 4. Remove any leading/trailing garbage
+        // 5. Remove any leading/trailing garbage
         cleaned = cleaned.trim();
         
         return cleaned;
