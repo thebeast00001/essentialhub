@@ -153,11 +153,48 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                             
                             // Don't render negative seconds passing origin
                             if (val < 0) return <div key={idx} className={styles.tick} style={{ opacity: 0 }} />;
+                            
+                            // Exponential fisheye based on distance from needle
+                            const distance = Math.abs(val - seconds);
+                            const fisheye = Math.exp(-0.06 * distance * distance);
+                            
+                            const currentOpacity = 0.15 + (0.85 * fisheye);
+                            const baseWidth = isMajor ? 30 : 12;
+                            const expandedWidth = baseWidth + (baseWidth * 1.5 * fisheye);
+                            const glowStrength = Math.pow(fisheye, 6); // Sharp falloff
+                            const shadow = glowStrength > 0.05 ? `0 0 ${glowStrength * 15}px rgba(255, 255, 255, ${glowStrength})` : 'none';
+                            const bgColor = `rgb(${100 + 155 * fisheye}, ${100 + 155 * fisheye}, ${100 + 155 * fisheye})`;
+
+                            const labelScale = 0.8 + (0.5 * fisheye);
+                            const labelOpacity = 0.3 + (0.7 * fisheye);
 
                             return (
-                                <div key={idx} className={clsx(styles.tick, isMajor && styles.major)}>
+                                <div 
+                                    key={idx} 
+                                    className={clsx(styles.tick, isMajor && styles.major)}
+                                    style={{
+                                        width: `${expandedWidth}px`,
+                                        opacity: currentOpacity,
+                                        background: bgColor,
+                                        boxShadow: shadow,
+                                        height: isMajor ? '2px' : '1px',
+                                        transition: 'none' // override any css transition for strict 1-to-1 render sync
+                                    }}
+                                >
                                     {isMajor && val >= 0 && (
-                                        <span className={styles.tickLabel}>{val}</span>
+                                        <span 
+                                            className={styles.tickLabel}
+                                            style={{
+                                                transform: `translateY(-50%) scale(${labelScale})`,
+                                                opacity: labelOpacity,
+                                                color: fisheye > 0.8 ? '#fff' : '#888',
+                                                textShadow: shadow,
+                                                transformOrigin: 'right center',
+                                                transition: 'none'
+                                            }}
+                                        >
+                                            {val}
+                                        </span>
                                     )}
                                 </div>
                             )

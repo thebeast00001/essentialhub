@@ -403,6 +403,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%);
 }
 
 .ticksList {
@@ -422,6 +424,7 @@
     background: #999;
     position: relative;
     flex-shrink: 0;
+    border-radius: 2px;
 }
 
 .tick.major {
@@ -431,11 +434,11 @@
 
 .tickLabel {
     position: absolute;
-    right: 60px;
-    top: -8px;
+    right: calc(100% + 16px);
+    top: 50%;
     font-size: 0.8rem;
     color: #222;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .redNeedle {
