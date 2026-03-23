@@ -40,7 +40,6 @@ if (typeof window !== 'undefined') {
 }
 
 const MermaidComponent = ({ chart }: { chart: string }) => {
-    const ref = useRef<HTMLDivElement>(null);
     const [svg, setSvg] = useState('');
     const [error, setError] = useState(false);
 
@@ -50,7 +49,6 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
             const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
             
             try {
-                // Clean up the chart string (remove any lingering markdown backticks)
                 let cleanChart = chart.trim()
                     .replace(/^```mermaid\n?/, '')
                     .replace(/\n?```$/, '');
@@ -60,16 +58,10 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
                 setError(false);
             } catch (err) {
                 console.warn('Mermaid render warning:', err);
-
-                // Mermaid automatically injects a massive SVG error overlay into the DOM with the ID `d${id}`.
-                // We must surgically remove it so it doesn't pollute the app globally!
                 const errorOverlay = document.getElementById(`d${id}`);
-                if (errorOverlay) {
-                    errorOverlay.remove();
-                }
+                if (errorOverlay) errorOverlay.remove();
                 setError(true);
             }
-
         };
         renderChart();
     }, [chart]);
@@ -88,7 +80,6 @@ const MermaidComponent = ({ chart }: { chart: string }) => {
             <div className="mermaid-wrapper" dangerouslySetInnerHTML={{ __html: svg }} />
         </div>
     );
-
 };
 
 export default function AiNotesPage() {
@@ -218,12 +209,14 @@ export default function AiNotesPage() {
                 rawBuffer += chunk;
                 
                 // Extraction Logic: Look for all text candidates in the raw stream buffer
-                // Gemini sends JSON chunks like: data: {"candidates":[{"content":{"parts":[{"text":"..."}]}}]}
-                // We'll extract only the values within the "text":"..." blocks
+                // Improved Regex to handle escaping better
                 const matches = Array.from(rawBuffer.matchAll(/"text":\s*"(.*?)(?<!\\)"/g));
                 let currentContent = '';
                 for (const match of matches) {
-                    currentContent += match[1];
+                    let text = match[1];
+                    // Unescape JSON string characters
+                    text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\'/g, "'");
+                    currentContent += text;
                 }
 
                 if (currentContent) {
