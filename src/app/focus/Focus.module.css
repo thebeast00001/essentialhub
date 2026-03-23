@@ -450,6 +450,48 @@
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
 }
 
+.signalMeter {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    width: 10px;
+    z-index: 5;
+}
+
+.signalBar {
+    width: 4px;
+    background: #444;
+    border-radius: 2px;
+    transition: background 0.3s;
+}
+
+.shell.fullscreen .redNeedle {
+    animation: needleShake 0.1s infinite alternate ease-in-out;
+    animation-play-state: paused;
+}
+
+.shell.fullscreen.active .redNeedle {
+    animation-play-state: running;
+}
+
+@keyframes needleShake {
+    from { transform: translateY(-50%) translateX(0px); }
+    to { transform: translateY(-50%) translateX(1px); }
+}
+
+.shell.fullscreen .radioInner {
+    transition: box-shadow 0.8s ease;
+}
+
+.shell.fullscreen.active .radioInner {
+    box-shadow: 0 0 60px rgba(129, 140, 248, 0.4);
+}
+
 /* ─── The Hourglass Frame ──────────────────────────────── */
 .hourglassOverlay {
     position: absolute;

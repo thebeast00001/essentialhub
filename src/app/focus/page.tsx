@@ -135,6 +135,25 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                 <div className={styles.radioRight}>
                     <div className={styles.redNeedle} />
                     
+                    {/* FM Signal Bars (Animated Side Bar) */}
+                    <div className={styles.signalMeter}>
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <motion.div 
+                                key={i}
+                                className={styles.signalBar}
+                                animate={{ 
+                                    height: isRunning ? [8, 24, 12, 30, 10][i % 5] : 4,
+                                    opacity: isRunning ? [0.6, 1, 0.8][i % 3] : 0.3
+                                }}
+                                transition={{ 
+                                    repeat: Infinity, 
+                                    duration: 0.8 + (i * 0.1),
+                                    ease: "easeInOut"
+                                }}
+                            />
+                        ))}
+                    </div>
+
                     <motion.div 
                         className={styles.ticksList}
                         animate={{ y: offset }}
