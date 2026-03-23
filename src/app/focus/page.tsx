@@ -102,9 +102,11 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     
-    // Each tick is spaced out by the flex gap (24px) + height (1px) = ~25px gap total visual layout
-    // We animate the list translating downwards (positive Y) based on passing seconds to simulate rolling
-    const offset = s * 25;
+    // Calculate fractional offset for perfect fluid scrolling
+    const centerValue = Math.ceil(seconds);
+    const fraction = centerValue - seconds; 
+    const TICK_HEIGHT = 25; // 24px gap + 1px tick height
+    const offset = fraction * TICK_HEIGHT;
 
     return (
         <div className={styles.radioClockWrapper}>
@@ -135,40 +137,32 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                 <div className={styles.radioRight}>
                     <div className={styles.redNeedle} />
                     
-                    <motion.div 
+                    {/* Fixed infinite continuous slider array centered at needle */}
+                    <div 
                         className={styles.ticksList}
-                        animate={{ y: offset }}
-                        transition={{ 
-                            duration: 0.1, 
-                            ease: "linear"
+                        style={{ 
+                            top: 'calc(50% - 500px)', 
+                            transform: `translateY(-${offset}px)`,
+                            transition: 'none' // Controlled strictly by 60fps render loops, zero lag
                         }}
                     >
-                        {Array.from({ length: 90 }).map((_, i) => {
-                            // Display from high to low mimicking an analog tuner
-                            const val = 60 - i + 15; 
+                        {Array.from({ length: 41 }).map((_, idx) => {
+                            const i = idx - 20; // Extent from index -20 to +20 around current frame
+                            const val = centerValue - i; // Lower index corresponds to items above needle (higher values)
                             const isMajor = val % 5 === 0;
+                            
+                            // Don't render negative seconds passing origin
+                            if (val < 0) return <div key={idx} className={styles.tick} style={{ opacity: 0 }} />;
+
                             return (
-                                <motion.div 
-                                    key={i} 
-                                    className={clsx(styles.tick, isMajor && styles.major)}
-                                    animate={{
-                                        opacity: isRunning ? [0.4, 1, 0.4] : 1,
-                                        width: isMajor ? (isRunning ? [45, 60, 45] : 50) : (isRunning ? [25, 40, 25] : 30)
-                                    }}
-                                    transition={{
-                                        duration: 1.5,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
-                                        delay: i * 0.05 // Staggered pulse effect
-                                    }}
-                                >
-                                    {isMajor && val >= 0 && val <= 60 && (
+                                <div key={idx} className={clsx(styles.tick, isMajor && styles.major)}>
+                                    {isMajor && val >= 0 && (
                                         <span className={styles.tickLabel}>{val}</span>
                                     )}
-                                </motion.div>
+                                </div>
                             )
                         })}
-                    </motion.div>
+                    </div>
                 </div>
 
             </div>
@@ -198,14 +192,15 @@ export default function FocusPage() {
             return;
         }
 
+        let frameId: number;
         const updateDisplay = () => {
             const elapsed = (Date.now() - timerStartedAt) / 1000;
             setDisplaySeconds(Math.max(0, timerSeconds - elapsed));
+            frameId = requestAnimationFrame(updateDisplay);
         };
 
-        updateDisplay();
-        const interval = setInterval(updateDisplay, 100); // Faster update for smooth UI
-        return () => clearInterval(interval);
+        frameId = requestAnimationFrame(updateDisplay);
+        return () => cancelAnimationFrame(frameId);
     }, [isTimerRunning, timerSeconds, timerStartedAt]);
 
     // Page Visibility API for Guardian Mode
