@@ -102,16 +102,10 @@ export default function EssentialNotesPage() {
                             rehypePlugins={[rehypeKatex]}
                             components={{
                                 p: ({ node, children, ...props }: any) => {
-                                    // Handle [ILLUSTRATION: ...] blocks beautifully
                                     const textContent = String(children);
                                     if (textContent.includes('[ILLUSTRATION:') && textContent.includes(']')) {
                                         const cleanText = textContent.replace('[ILLUSTRATION:', '').replace(']', '').trim();
-                                        return (
-                                            <div className={styles.illustrationBlock}>
-                                                <Palette className={styles.illustrationIcon} size={28} />
-                                                <span><strong>Visual Note Placeholder:</strong> {cleanText}</span>
-                                            </div>
-                                        );
+                                        return <Illustration text={cleanText} />;
                                     }
                                     return <p {...props}>{children}</p>;
                                 }
@@ -125,3 +119,47 @@ export default function EssentialNotesPage() {
         </div>
     );
 }
+
+const Illustration = ({ text }: { text: string }) => {
+    const [imageUrl, setImageUrl] = React.useState<string | null>(null);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        let isMounted = true;
+        const fetchImage = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch('/api/essential-notes/illustrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: text })
+                });
+                if (!res.ok) throw new Error('Generation failed');
+                const blob = await res.blob();
+                if (isMounted) setImageUrl(URL.createObjectURL(blob));
+            } catch (err: any) {
+                if (isMounted) setError(err.message);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+        fetchImage();
+        return () => { isMounted = false; };
+    }, [text]);
+
+    return (
+        <div className={styles.illustrationBlock}>
+            {loading && (
+                <div className={styles.loadingPulse}>
+                    <Loader2 className="animate-spin" size={24} style={{ marginBottom: '8px' }} />
+                    <br />
+                    Generating Illustration...
+                </div>
+            )}
+            {error && <div className={styles.errorText}>Illustration could not be loaded ({error}).</div>}
+            {imageUrl && <img src={imageUrl} alt={text} className={styles.generatedImage} style={{ maxWidth: '100%', borderRadius: '8px' }} />}
+            <span className={styles.illustrationCaption}><strong>Visual:</strong> {text}</span>
+        </div>
+    );
+};

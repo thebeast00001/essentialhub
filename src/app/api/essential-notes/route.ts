@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
 function extractVideoId(url: string) {
     const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
@@ -32,11 +32,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to fetch transcript. The video might not have captions enabled or is restricted. Try another video.' }, { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-2.5-flash",
-            generationConfig: { maxOutputTokens: 8192 }
-        });
-
         const prompt = `
 You are an expert student creating the perfect handwritten-style notebook summary of a YouTube educational video.
 I will provide you with the transcript of the video. You MUST generate comprehensive, highly structured, and visually descriptive study notes based strictly on the following requirements:
@@ -63,15 +58,21 @@ Educational, student-friendly, concise, revision-focused. Avoid long paragraphs.
 Do NOT include any external pleasantries, introductions to your answer, or JSON formatting. OUTPUT ONLY THE FINAL MARKDOWN NOTES starting immediately with the title.
 `;
 
-        const result = await model.generateContentStream(prompt);
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'llama-3.3-70b-versatile',
+            stream: true,
+        });
         
         const encoder = new TextEncoder();
         const readable = new ReadableStream({
             async start(controller) {
                 try {
-                    for await (const chunk of result.stream) {
-                        const chunkText = chunk.text();
-                        controller.enqueue(encoder.encode(chunkText));
+                    for await (const chunk of completion) {
+                        const content = chunk.choices[0]?.delta?.content || '';
+                        if (content) {
+                            controller.enqueue(encoder.encode(content));
+                        }
                     }
                     controller.close();
                 } catch (streamError) {
