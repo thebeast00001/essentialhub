@@ -452,12 +452,12 @@
 
 .physics-diagram {
     display: block;
-    margin: 80px auto;
-    padding: 120px 40px;
-    background: #fff;
-    border: 4px solid #0f172a;
+    margin: 120px auto; /* More vertical space */
+    padding: 160px 60px;
+    background: #ffffff;
+    border: 5px solid #0f172a;
     border-radius: 12px;
-    box-shadow: 15px 15px 0px #f8fafc;
+    box-shadow: 25px 25px 0px rgba(0,0,0,0.05); /* Premium sticker shadow */
     position: relative;
     overflow-x: auto;
     max-width: 100%;
@@ -467,31 +467,29 @@
     max-width: none;
     height: auto;
     min-width: 1000px;
-    flex-shrink: 0;
-}
-
-.physics-diagram::after {
-    content: 'PHYSICS VISUAL';
-    position: absolute;
-    bottom: -18px;
-    right: 40px;
-    background: #dc2626;
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 900;
-    padding: 6px 16px;
-    border-radius: 6px;
+    filter: drop-shadow(4px 4px 10px rgba(0,0,0,0.1));
 }
 
 .markdownBody :global(.katex-display) {
-    background: transparent;
-    padding: 10px;
-    margin: 40px 0;
-    font-size: 1.3em;
+    background: rgba(30, 64, 175, 0.03);
+    padding: 60px 40px; /* Maximum vertical spacing */
+    margin: 120px 0;
+    font-size: 1.6em; /* Larger numericals */
     text-align: center;
-    color: #1e40af; /* Blue ink */
+    color: #0f172a; /* Slate/Black for equations */
+    border-radius: 12px;
+    border-left: 8px solid #dc2626; /* Teacher check-mark style border */
     overflow-x: auto;
     overflow-y: hidden;
+}
+
+/* Sticky Note Revamp */
+.markdownBody :global(.sticky-card) {
+    margin: 100px auto;
+    width: 90%;
+    transform: rotate(-1deg);
+    background: #fef08a !important; /* Yellow sticky note */
+    box-shadow: 10px 10px 30px rgba(0,0,0,0.1);
 }
 
 .actionBar {

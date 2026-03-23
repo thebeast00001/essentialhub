@@ -76,29 +76,23 @@ export async function POST(req: NextRequest) {
             You are a Senior Academic Designer and Master Note-Taker. Your goal is to convert the provided transcript into ELITE, PREMIUM study notes that look like a professional, hand-annotated textbook page.
             
             Video ID: ${videoId}
-            Transcript Source: ${transcriptText.substring(0, 30000)}
+            Transcript Source: ${transcriptText.substring(0, 15000)}
 
             STRICT STYLE GUIDELINES:
-            1. **Persona**: High-value academic tone, clear physics/math explanations, and "Zenith-level" reasoning.
-            2. **Formatting**: 
-                - # [Handwritten Style] Main Topic
-                - ## Detailed Concepts
-                - Use **Bold** for terminology and *Italics* for emphasis.
-                - Use > [!TIP] or > [!IMPORTANT] callouts for exam-critical points.
-            3. **Visual-First Strategy (MANDATORY)**:
-                - For EVERY major concept, generate a beautiful **SVG code block** tagged with \`\`\`svg.
-                - **SVG Design**: 
-                    - Use \`viewBox="0 0 1000 500"\` for a wide, cinematic layout.
-                    - Font: MUST use \`font-family="Caveat, cursive"\` for all labels.
-                    - Colors: Use professional blues (#1e3a8a), slate (#475569), and accent indigo (#6366f1).
-                    - **NO TEXT OVERLAP**: Place text labels at least 40px away from lines. Use offsets.
-                    - Style: Simple, clean, vector-diagram style.
-            4. **Interactive Simulations**:
-                - Use \`\`\`sandbox type="rotation"\`\`\` to insert a live 3D disk simulation for rotational inertia.
-                - Use \`\`\`sandbox type="projectile"\`\`\` for kinematics.
-            5. **Structured Learning**:
-                - Use \`\`\`flashcard\`\`\` blocks (Term: Definition) for memorization.
-                - Each mathematical derivation step must be on a new line using $$ LaTeX $$.
+            1. **Persona**: Senior Physics Professor. Use clear, elite academic language. No "fluff".
+            2. **Numericals & Math**: 
+                - Every formula MUST be in its own line using $$ LaTeX $$.
+                - For derivations, use ONE step per line. Do NOT cluster multiple equations in one block. 
+                - Add a short explanation *above* each formula.
+            3. **Illustrations (MANDATORY)**:
+                - Generate at least 2-3 detailed SVGs using \`\`\`svg.
+                - **Style**: Vector diagram style. Line weight 3px. 
+                - **Colors**: Use Deep Blue (#1e3a8a) for main shapes, Indigo (#4f46e5) for vectors/arrows, and Black (#000000) for labels. 
+                - **Avoid Red**: Only use Red (#f43f5e) for "Critical Force" or "Error/Danger" points. 
+                - **NO TEXT OVERLAP**: Labels MUST be offset by 40 units from objects. 
+            4. **Flashcards/Sticky Notes**:
+                - Use \`\`\`flashcard\`\`\` for summaries. Keep them short (Term: Detailed Definition).
+            5. **NO COMPUTER LANGUAGE**: Do not output raw JSON, escaped Unicode (like \\u003c), or any <script> tags. PURE Markdown only.
 
             Output should be PURE Markdown. Be extremely detailed. If the topic is Rotational Motion, cover Moment of Inertia, Torque, Angular Momentum, and Rolling with multiple diagrams and derivations.
         `;
