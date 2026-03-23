@@ -25,8 +25,9 @@ import styles from './AiNotes.module.css';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import mermaid from 'mermaid';
-import MomentOfInertiaSandbox from '@/components/sandboxes/MomentOfInertiaSandbox';
 import ProjectileSandbox from '@/components/sandboxes/ProjectileSandbox';
+import MomentOfInertiaSandbox from '@/components/sandboxes/MomentOfInertiaSandbox';
+import ChemicalBondSandbox from '@/components/sandboxes/ChemicalBondSandbox';
 import StickyFlashcard from '@/components/flashcards/StickyFlashcard';
 
 // Initialize mermaid (strictly localized to avoid breaking other app pages)
@@ -404,9 +405,10 @@ export default function AiNotesPage() {
                                             return <StickyFlashcard content={String(children)} />;
                                         },
                                         sandbox({ node, ...props }: any) {
-                                            const type = props.type || 'rotation';
+                                            const type = (props.type || 'rotation').toLowerCase();
                                             if (type.includes('rotation') || type.includes('inertia')) return <MomentOfInertiaSandbox />;
                                             if (type.includes('projectile') || type.includes('motion')) return <ProjectileSandbox />;
+                                            if (type.includes('bond') || type.includes('chemistry') || type.includes('iupac')) return <ChemicalBondSandbox />;
                                             return <MomentOfInertiaSandbox />;
                                         },
                                         code({ node, inline, className, children, ...props }: any) {
@@ -422,11 +424,15 @@ export default function AiNotesPage() {
                                             // Intercept Interactive Sandboxes
                                             const isSandbox = match && match[1] === 'sandbox';
                                             if (isSandbox) {
-                                                if (contentStr.toLowerCase().includes('type="rotation"') || contentStr.toLowerCase().includes('type="inertia"')) {
+                                                const lowerContent = contentStr.toLowerCase();
+                                                if (lowerContent.includes('type="rotation"') || lowerContent.includes('type="inertia"')) {
                                                     return <MomentOfInertiaSandbox />;
                                                 }
-                                                if (contentStr.toLowerCase().includes('type="projectile"') || contentStr.toLowerCase().includes('type="motion"')) {
+                                                if (lowerContent.includes('type="projectile"') || lowerContent.includes('type="motion"')) {
                                                     return <ProjectileSandbox />;
+                                                }
+                                                if (lowerContent.includes('type="bond"') || lowerContent.includes('type="chemistry"') || lowerContent.includes('type="iupac"')) {
+                                                    return <ChemicalBondSandbox />;
                                                 }
                                                 return <MomentOfInertiaSandbox />;
                                             }
