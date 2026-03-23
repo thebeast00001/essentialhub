@@ -73,34 +73,27 @@ export async function POST(req: NextRequest) {
         console.log('Initiating Gemini Streaming (2.5-flash) with Elite Prompt...');
         
         const prompt = `
-            You are a World-Class Academic Professor. Generate ELITE, COMPREHENSIVE study notes.
+            You are a World-Class Academic Professor. Generate the ULTIMATE high-density study notes.
             
             Video ID: ${videoId}
-            Transcript Data: ${transcriptText.substring(0, 40000)}
+            Transcript Data (30k Window): ${transcriptText.substring(0, 30000)}
 
-            STRICT REQUIREMENTS:
-            1. **Content Depth**: Provide an extremely detailed academic breakdown. Do not summarize; convert every concept, formula, and derivation in the transcript into high-value notes.
-            2. **Pure Molecular Structures (Chemistry)**:
-                - If the topic is IUPAC/Organic, draw **Skeletal Structures** in \`\`\`svg. 
-                - Example Benzene: Use \`<polygon points="500,200 587,250 587,350 500,400 413,350 413,250" ... />\`. 
-                - Use lines for bonds. DO NOT use flowcharts for molecules.
-            3. **Visuals (SVG)**: Generate 2-3 detailed diagrams using \`\`\`svg.
-               - **Layout**: Use \`viewBox="0 0 1000 500"\`. You MUST wrap everything in a \`<g transform="translate(500, 250)">\` to center it.
-               - **Labels**: Use \`text-anchor="middle"\`. Ensure no text is closer than 80 units to any object.
-            4. **Math (LaTeX)**: Every formula MUST be on a new line wrapped in $$ $$. 
-               - For multi-character variables like "TotalSum", you MUST use \`\\mathrm{TotalSum}\`. 
-            5. **Cleanliness**: NO escaped characters (like \\uXXXX), NO raw JSON, NO script tags. PURE Markdown.
-            6. **Stickers**: Include 5+ flashcards (\`\`\`flashcard\`\`\`) and at least 1 interactive sandbox (\`\`\`sandbox\`).
+            MASTER INSTRUCTIONS:
+            1. **High Detail**: Do not skip steps. Provide an extremely detailed phase-by-phase breakdown of the transcript.
+            2. **Pure Chemistry SVGs**: Draw skeletal structures for molecules. Example: Benzene is a hexagon \`<polygon points="500,200 587,250 587,350 500,400 413,350 413,250" />\`.
+            3. **SVG Layout**: Use \`<g transform="translate(500, 250)">\` to center. Labels at edges. No overlapping text.
+            4. **Formula Spacing**: Use \`\\mathrm{...}\` for long variable names. Each formula gets its own line with $$ LaTeX $$.
+            5. **Clean Markdown**: Absolutely NO raw JSON, escaped entities, or script tags.
         `;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
                     maxOutputTokens: 8192,
-                    temperature: 0.2, // Keep it precise for academic notes
+                    temperature: 0.2, // Precise for high-fidelity notes
                 },
                 safetySettings: [
                     { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
