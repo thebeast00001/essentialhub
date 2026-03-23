@@ -1,0 +1,251 @@
+.container {
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: var(--font-sans);
+    min-height: 100vh;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.inputGroup {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-md);
+}
+
+.input {
+    flex: 1;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.btn {
+    padding: 0 32px;
+    border-radius: 12px;
+    background: var(--accent-primary);
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn:hover:not(:disabled) {
+    background: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --- Handwritten Note Aesthetic --- */
+
+.notebookContainer {
+    background: #fdfcf8; /* Soft warm paper white */
+    color: #111; /* Dark charcoal ink */
+    padding: 60px 80px;
+    border-radius: 8px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1), inset 0 0 100px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 60px;
+    
+    /* Perfect notebook lines */
+    background-image: linear-gradient(#d1d5db 1px, transparent 1px);
+    background-size: 100% 32px;
+    background-position: 0 28px;
+}
+
+/* Left margin line like a composition notebook */
+.notebookContainer::before {
+    content: '';
+    position: absolute;
+    left: 55px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(220, 38, 38, 0.4);
+}
+
+/* Secondary fainter red margin line */
+.notebookContainer::after {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(220, 38, 38, 0.2);
+}
+
+.notebookContent {
+    position: relative;
+    font-size: 1.15rem;
+    line-height: 32px; 
+    font-family: inherit; 
+    z-index: 10;
+}
+
+/* Markdown typography matching the lines */
+.notebookContent h1, 
+.notebookContent h2, 
+.notebookContent h3 {
+    margin-top: 32px; 
+    margin-bottom: 32px;
+    font-weight: 800;
+    color: #000;
+    font-family: var(--font-display);
+    position: relative;
+}
+
+.notebookContent h1 {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 64px;
+}
+
+.notebookContent h2 {
+    font-size: 1.6rem;
+    border-bottom: 2px solid #2563eb;
+    display: inline-block;
+    padding-bottom: 2px;
+}
+
+.notebookContent p,
+.notebookContent li {
+    margin-bottom: 32px;
+}
+
+.notebookContent ul, .notebookContent ol {
+    padding-left: 20px;
+}
+
+/* Boxed Summaries / Highlights */
+.notebookContent blockquote {
+    border: 2px solid #2563eb;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 32px 0;
+    background: rgba(37, 99, 235, 0.05);
+    font-weight: 500;
+    color: #1d4ed8;
+    position: relative;
+    box-shadow: 4px 4px 0px rgba(37, 99, 235, 0.15);
+}
+
+.notebookContent blockquote p {
+    margin-bottom: 0;
+}
+
+/* In-line callouts */
+.notebookContent strong {
+    color: #b91c1c; /* "Red pen" */
+    font-weight: 700;
+}
+
+/* Math equations background */
+.notebookContent .math-display {
+    background: #f1f5f9;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 32px 0;
+    overflow-x: auto;
+    border-left: 4px solid #475569;
+}
+
+/* The [ILLUSTRATION: ...] blocks custom rendering class */
+.illustrationBlock {
+    border: 2px dashed #9ca3af;
+    background: #f9fafb;
+    padding: 30px 20px;
+    text-align: center;
+    margin: 32px 0;
+    border-radius: 12px;
+    color: #4b5563;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    font-style: italic;
+    background-image: none; /* override inherited paper background if any */
+}
+
+/* Hide background lines inside the illustration block for cleanliness */
+.illustrationBlock::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #f9fafb;
+    z-index: -1;
+    border-radius: 12px;
+}
+
+.illustrationIcon {
+    opacity: 0.6;
+    color: #2563eb;
+}
+
+.errorText {
+    color: #ef4444;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .notebookContainer {
+        padding: 40px 20px;
+        padding-left: 50px;
+    }
+    .notebookContainer::before {
+        left: 30px;
+    }
+    .notebookContainer::after {
+        left: 35px;
+    }
+    .inputGroup {
+        flex-direction: column;
+    }
+}
