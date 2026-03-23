@@ -44,7 +44,6 @@ const toolItems = [
     { icon: Flame, label: 'Habits', href: '/habits' },
     { icon: BarChart3, label: 'Analytics', href: '/insights' },
     { icon: Timer, label: 'Timer', href: '/focus' },
-    { icon: BookOpen, label: 'AI Notes', href: '/ai-notes' },
 ];
 
 
