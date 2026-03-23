@@ -70,20 +70,29 @@ export async function POST(req: NextRequest) {
         }
 
         // --- ELITE PROMPT DESIGN ---
-        console.log('Initiating Gemini Streaming (2.5-flash) with Elite Prompt...');
-        
         const prompt = `
-            You are a World-Class Academic Professor. Generate the ULTIMATE high-density study notes.
+            You are a World-Class Academic Professor. Your task is to generate the most ULTIMATE, HIGH-DENSITY, and VISUALLY STUNNING study guide based on the provided transcript.
             
             Video ID: ${videoId}
-            Transcript Data (30k Window): ${transcriptText.substring(0, 30000)}
+            Transcript Data (30k chars): ${transcriptText.substring(0, 30000)}
 
-            MASTER INSTRUCTIONS:
-            1. **High Detail**: Do not skip steps. Provide an extremely detailed phase-by-phase breakdown of the transcript.
-            2. **Pure Chemistry SVGs**: Draw skeletal structures for molecules. Example: Benzene is a hexagon \`<polygon points="500,200 587,250 587,350 500,400 413,350 413,250" />\`.
-            3. **SVG Layout**: Use \`<g transform="translate(500, 250)">\` to center. Labels at edges. No overlapping text.
-            4. **Formula Spacing**: Use \`\\mathrm{...}\` for long variable names. Each formula gets its own line with $$ LaTeX $$.
-            5. **Clean Markdown**: Absolutely NO raw JSON, escaped entities, or script tags.
+            GOAL: Create the most authoritative, professional, and easy-to-learn study guide ever made.
+
+            ELITE STRUCTURAL RULES:
+            1. **The Executive Summary**: Start with a high-level overview ($# Executive Summary). Identify the 3 core "Mind-Blowing" concepts introduced.
+            2. **Deep Academic Breakdown**: DO NOT summarize. Use high-density, rigorous academic language. Convert every technical point, nuance, and derivation into a detailed section.
+            3. **Vector Masterpieces (SVG)**: Generate 2-4 professional-grade diagrams in \`\`\`svg blocks.
+               - **Physics**: Force diagrams, orbital paths, or pendulum mechanics.
+               - **Chemistry**: Skeletal molecular structures (e.g., Benzene, Glucose).
+               - **Biology**: Cell structures or DNA strands.
+               - Use \`<g transform="translate(500, 250)">\` to center everything. 
+               - Use high-contrast colors (Deep Blue for main, Indigo for accents).
+            4. **Formula Excellence (LaTeX)**: Every derivation must be painstakingly clear. Wrap all math in $$...$$. 
+               - DO NOT use the word "ext" inside LaTeX. Use \`\\mathrm{...}\` for multi-character terms.
+            5. **Interactive Stickers**: 
+               - Insert at least 2 sandboxes: \`\`\`sandbox type="bond"\`\`\` for chemistry or \`\`\`sandbox type="rotation"\`\`\` for physics.
+               - Insert 5+ gold-standard flashcards: \`\`\`flashcard Question? | Answer! \`\`\`.
+            6. **Tone**: Direct, authoritative, encouraging, and elite. No "fluff".
         `;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
@@ -93,7 +102,7 @@ export async function POST(req: NextRequest) {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
                     maxOutputTokens: 8192,
-                    temperature: 0.2, // Precise for high-fidelity notes
+                    temperature: 0.15, // Extremely high precision
                 },
                 safetySettings: [
                     { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },

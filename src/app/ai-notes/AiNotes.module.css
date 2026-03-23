@@ -300,201 +300,149 @@
     z-index: 5;
 }
 
-/* Subtle texture */
-.notesWrapper::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url('https://www.transparenttextures.com/patterns/paper.png');
-    opacity: 0.2;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.notesHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 100px;
-    padding-bottom: 50px;
-    border-bottom: 3px solid #0f172a;
-    z-index: 10;
+.notesWrapper {
+    background: #ffffff;
+    padding: 60px;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    background-image: 
+        linear-gradient(rgba(200, 200, 200, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 200, 200, 0.08) 1px, transparent 1px);
+    background-size: 30px 30px;
+    min-height: 800px;
+    border: 1px solid #e2e8f0;
 }
 
 .zenithSeal {
     position: absolute;
-    top: 100px;
-    right: 50px;
-    width: 120px;
-    height: 120px;
-    border: 4px double #dc2626;
+    top: 30px;
+    right: 30px;
+    padding: 15px;
+    border: 3px double #1e3a8a;
     border-radius: 50%;
+    width: 100px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-family: var(--font-sans);
-    font-weight: 900;
     font-size: 0.7rem;
-    color: #dc2626;
-    opacity: 0.4;
+    font-weight: 800;
+    color: #1e3a8a;
     transform: rotate(15deg);
+    opacity: 0.5;
+    letter-spacing: 1px;
     pointer-events: none;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(2px);
     z-index: 5;
-    background: rgba(220, 38, 38, 0.05);
 }
 
 .markdownBody {
     position: relative;
     z-index: 10;
-    font-family: 'Caveat', cursive, sans-serif;
-    font-size: 1.6rem; /* Perfectly readable for desktop notes */
-    color: #1e40af; /* Blue Ink as DEFAULT */
-    line-height: 1.8em;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.15rem;
+    color: #334155;
+    line-height: 1.75;
 }
 
-.markdownBody h1 { 
-    font-size: 4.5rem; 
-    border-bottom: 8px solid #0f172a; 
-    display: inline-block; 
-    margin-bottom: 1.5em;
-    transform: rotate(-0.5deg);
+.markdownBody h1, .markdownBody h2, .markdownBody h3 {
+    font-family: 'Caveat', cursive;
+    color: #1e3a8a;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
 }
 
-.markdownBody h2 { 
-    font-size: 3.2rem; 
-    margin-top: 3.5em; 
-    padding-bottom: 15px; 
-    border-bottom: 4px solid #334155;
-    transform: rotate(0.2deg);
-}
-
-.markdownBody h3 { 
-    font-size: 2.6rem; 
-    text-decoration: underline; 
-    text-decoration-color: #1e3a8a;
-    margin-top: 2.5em;
-}
+.markdownBody h1 { font-size: 3.5rem; text-align: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 15px; }
+.markdownBody h2 { font-size: 2.8rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+.markdownBody h3 { font-size: 2.2rem; }
 
 .markdownBody p, .markdownP {
-    margin-bottom: 2.5em;
-}
-
-.markdownBody strong {
-    color: #1e3a8a;
-    position: relative;
-}
-
-.markdownBody strong::after {
-    content: "";
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 100%;
-    height: 6px;
-    background: rgba(239, 68, 68, 0.3);
-    border-radius: 4px;
-    transform: skewX(-20deg);
-}
-
-.markdownBody li {
-    list-style-type: none;
-    padding-left: 50px;
-    margin-bottom: 30px;
-    position: relative;
-}
-
-.markdownBody li::before {
-    content: '→';
-    position: absolute;
-    left: 0;
-    color: #1e3a8a;
-    font-weight: 900;
-    font-size: 1.8rem;
-}
-
-.markdownBody ul li::before {
-    content: '●';
+    margin-bottom: 1.8rem;
     font-size: 1.2rem;
-    top: 5px;
+    color: #475569;
 }
 
-.markdownBody table {
-    width: calc(100% - 20px);
-    border-collapse: collapse;
-    margin: 80px 0 100px 0;
-    background: #fff;
-    border: 3px solid #0f172a;
-    box-shadow: 10px 10px 0px #e2e8f0;
-}
-
-.markdownBody th, .markdownBody td {
-    border: 2px solid #334155;
-    padding: 30px;
-}
-
-.markdownBody th {
-    background: #f8fafc;
-    color: #0f172a;
-    font-weight: 900;
-    text-transform: uppercase;
-    font-size: 1rem;
-}
-
+/* Enhanced Diagrams como "Stickers" */
 .visualBlock {
-    display: block;
-    clear: both;
-    margin: 100px 0;
-    position: relative;
-    z-index: 60; /* Stay on top of other text elements */
+    margin: 60px -40px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 
 .physics-diagram {
+    background: #fff;
+    border: 2px solid #0f172a;
+    border-radius: 16px;
+    padding: 50px;
+    box-shadow: 12px 12px 0px rgba(15, 23, 42, 0.05);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 80px auto;
-    padding: 100px 50px;
-    background: #ffffff;
-    border: 3px solid #0f172a;
-    border-radius: 12px;
-    box-shadow: 15px 15px 0px rgba(0,0,0,0.05);
+    max-width: 95%;
     position: relative;
-    overflow: hidden; /* Prevent clipping of shadow */
-    max-width: 100%;
+    transition: transform 0.2s;
+}
+
+.physics-diagram:hover {
+    transform: scale(1.02) rotate(0.5deg);
 }
 
 .physics-diagram svg {
-    width: 100%;
+    max-width: 100%;
     height: auto;
-    max-width: 800px; /* Constrain size for better layout */
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08));
 }
 
+/* Math blocks with a premium air */
 .markdownBody :global(.katex-display) {
-    background: rgba(30, 64, 175, 0.03);
-    padding: 60px 40px; 
-    margin: 120px 0;
-    font-size: 1.8rem; /* Larger numericals */
-    text-align: center;
-    color: #0f172a; 
+    background: #f8fafc;
+    padding: 40px;
+    margin: 50px 0;
     border-radius: 12px;
-    border-left: 8px solid #1e3a8a; /* Blue ink marker */
+    border-left: 6px solid #1e3a8a;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
     overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap !important; /* PREVENT VERTICAL WRAP */
-    display: block;
-    width: 100%;
+    white-space: nowrap !important;
 }
 
-/* Sticky Note Revamp */
+/* Sticky Note Redesign */
 .markdownBody :global(.sticky-card) {
-    margin: 100px auto;
-    width: 90%;
-    transform: rotate(-1deg);
-    background: #fef08a !important; /* Yellow sticky note */
-    box-shadow: 10px 10px 30px rgba(0,0,0,0.1);
+    background: #fef08a !important; /* Soft Yellow */
+    padding: 30px;
+    margin: 50px auto;
+    width: 85%;
+    max-width: 600px;
+    box-shadow: 15px 15px 0px rgba(0,0,0,0.03);
+    transform: rotate(-1.5deg);
+    position: relative;
+    border-top: 30px solid #fde047;
+    border-radius: 2px;
+}
+
+.markdownBody :global(.sticky-card)::before {
+    content: "";
+    position: absolute;
+    top: -25px;
+    left: 20px;
+    width: 60px;
+    height: 15px;
+    background: rgba(255,255,255,0.5);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.markdownBody :global(.sticky-card) p {
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem;
+    color: #854d0e;
+    margin: 0;
+    line-height: 1.3;
 }
 
 .actionBar {

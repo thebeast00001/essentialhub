@@ -139,7 +139,7 @@ export default function AiNotesPage() {
         return null;
     };
 
-    // 🧼 ELITE CLEANUP: Fixes Unicode and JSON artifacts from streaming
+    // 🧼 MASTER CLEANUP: Fixes Unicode, JSON artifacts, and formatting glitches
     const cleanNotes = (content: string) => {
         if (!content) return "";
         
@@ -150,7 +150,7 @@ export default function AiNotesPage() {
             return String.fromCharCode(parseInt(grp, 16));
         });
 
-        // 2. Fix common streaming JSON artifacts
+        // 2. Fix common streaming JSON artifacts and escaping
         cleaned = cleaned
             .replace(/\\" /g, '" ')
             .replace(/ \\"/g, ' "')
@@ -160,7 +160,12 @@ export default function AiNotesPage() {
             .replace(/\\t/g, '\t')
             .replace(/\\\\/g, '\\');
 
-        // 3. Remove any leading/trailing garbage
+        // 3. Special Case: Remove "ext" prefixes or leftovers from LaTeX AI generation
+        // This often happens when the AI tries to use \text{} or similar
+        cleaned = cleaned.replace(/ ext([A-Z])/g, ' $1');
+        cleaned = cleaned.replace(/ext([A-Z])/g, '$1');
+
+        // 4. Remove any leading/trailing garbage
         cleaned = cleaned.trim();
         
         return cleaned;
