@@ -349,7 +349,7 @@
     position: relative;
     z-index: 10;
     font-family: 'Caveat', cursive, sans-serif;
-    font-size: 1.4rem; /* Scaled down for professional look */
+    font-size: 1.6rem; /* Perfectly readable for desktop notes */
     color: #1e40af; /* Blue Ink as DEFAULT */
     line-height: 1.8em;
 }
@@ -373,7 +373,7 @@
 .markdownBody h3 { 
     font-size: 2.6rem; 
     text-decoration: underline; 
-    text-decoration-color: #dc2626;
+    text-decoration-color: #1e3a8a;
     margin-top: 2.5em;
 }
 
@@ -409,7 +409,7 @@
     content: '→';
     position: absolute;
     left: 0;
-    color: #dc2626;
+    color: #1e3a8a;
     font-weight: 900;
     font-size: 1.8rem;
 }
@@ -451,36 +451,41 @@
 }
 
 .physics-diagram {
-    display: block;
-    margin: 120px auto; /* More vertical space */
-    padding: 160px 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 80px auto;
+    padding: 100px 50px;
     background: #ffffff;
-    border: 5px solid #0f172a;
+    border: 3px solid #0f172a;
     border-radius: 12px;
-    box-shadow: 25px 25px 0px rgba(0,0,0,0.05); /* Premium sticker shadow */
+    box-shadow: 15px 15px 0px rgba(0,0,0,0.05);
     position: relative;
-    overflow-x: auto;
+    overflow: hidden; /* Prevent clipping of shadow */
     max-width: 100%;
 }
 
 .physics-diagram svg {
-    max-width: none;
+    width: 100%;
     height: auto;
-    min-width: 1000px;
-    filter: drop-shadow(4px 4px 10px rgba(0,0,0,0.1));
+    max-width: 800px; /* Constrain size for better layout */
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
 }
 
 .markdownBody :global(.katex-display) {
     background: rgba(30, 64, 175, 0.03);
-    padding: 60px 40px; /* Maximum vertical spacing */
+    padding: 60px 40px; 
     margin: 120px 0;
-    font-size: 1.6em; /* Larger numericals */
+    font-size: 1.8rem; /* Larger numericals */
     text-align: center;
-    color: #0f172a; /* Slate/Black for equations */
+    color: #0f172a; 
     border-radius: 12px;
-    border-left: 8px solid #dc2626; /* Teacher check-mark style border */
+    border-left: 8px solid #1e3a8a; /* Blue ink marker */
     overflow-x: auto;
     overflow-y: hidden;
+    white-space: nowrap !important; /* PREVENT VERTICAL WRAP */
+    display: block;
+    width: 100%;
 }
 
 /* Sticky Note Revamp */

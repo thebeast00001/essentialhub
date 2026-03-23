@@ -208,19 +208,14 @@ export default function AiNotesPage() {
                 const chunk = decoder.decode(value, { stream: true });
                 rawBuffer += chunk;
                 
-                // Extraction Logic: Look for all text candidates in the raw stream buffer
-                // Improved Regex to handle escaping better
                 const matches = Array.from(rawBuffer.matchAll(/"text":\s*"(.*?)(?<!\\)"/g));
-                let currentContent = '';
+                let combined = '';
                 for (const match of matches) {
-                    let text = match[1];
-                    // Unescape JSON string characters
-                    text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\'/g, "'");
-                    currentContent += text;
+                    combined += match[1];
                 }
 
-                if (currentContent) {
-                    setNotes(currentContent);
+                if (combined) {
+                    setNotes(cleanNotes(combined));
                 }
             }
             

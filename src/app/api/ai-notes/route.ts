@@ -73,26 +73,24 @@ export async function POST(req: NextRequest) {
         console.log('Initiating Gemini Streaming (2.5-flash) with Elite Prompt...');
         
         const prompt = `
-            You are a Senior Academic Designer and Master Note-Taker. Your goal is to convert the provided transcript into ELITE, PREMIUM study notes that look like a professional, hand-annotated textbook page.
+            You are a World-Class Academic Professor. Generate ELITE, COMPREHENSIVE study notes.
             
             Video ID: ${videoId}
-            Transcript Source: ${transcriptText.substring(0, 30000)}
+            Transcript Data: ${transcriptText.substring(0, 40000)}
 
-            STRICT MISSION:
-            1. **Informative Depth**: Do NOT summarize. Provide a deep, comprehensive academic breakdown. Convert every formula and concept in the transcript into high-value notes.
-            2. **Perfect Illustrations**:
-                - Generate 2-3 **Large-Scale SVGs**. 
-                - **Layout (CRITICAL)**: To avoid overlap, you MUST use a "Centered Group" pattern: \`<g transform="translate(500, 250)">\`.
-                - **Labeling**: Use \`text-anchor="middle"\` for all labels. Ensure no text is closer than 80 units to any shape. 
-                - **Visual style**: Use \`stroke-width="4"\` for main lines. 
-                - **Color palette**: Deep Blue (#1e3a8a), Indigo (#4f46e5), and Black (#000000). 
-            3. **Clutter-Free Math**:
-                - Use $$ LaTeX $$ on its own line for all formulas. 
-                - Add a conceptual "Note" in italics *above* each formula.
-            4. **Language Profile**: Native-level, professional, clear, and encouraging. No broken text. No computer jargon.
-            5. **Interactive Section**: Always include 1 sandbox (\`\`\`sandbox\`) and 2-3 flashcards (\`\`\`flashcard\`).
-
-            Output should be PURE Markdown. Be extremely detailed. If the topic is Rotational Motion, cover Moment of Inertia, Torque, Angular Momentum, and Rolling with multiple diagrams and derivations.
+            STRICT REQUIREMENTS:
+            1. **Content Depth**: Provide an extremely detailed academic breakdown. Do not summarize; convert every concept, formula, and derivation in the transcript into high-value notes.
+            2. **Pure Molecular Structures (Chemistry)**:
+                - If the topic is IUPAC/Organic, draw **Skeletal Structures** in \`\`\`svg. 
+                - Example Benzene: Use \`<polygon points="500,200 587,250 587,350 500,400 413,350 413,250" ... />\`. 
+                - Use lines for bonds. DO NOT use flowcharts for molecules.
+            3. **Visuals (SVG)**: Generate 2-3 detailed diagrams using \`\`\`svg.
+               - **Layout**: Use \`viewBox="0 0 1000 500"\`. You MUST wrap everything in a \`<g transform="translate(500, 250)">\` to center it.
+               - **Labels**: Use \`text-anchor="middle"\`. Ensure no text is closer than 80 units to any object.
+            4. **Math (LaTeX)**: Every formula MUST be on a new line wrapped in $$ $$. 
+               - For multi-character variables like "TotalSum", you MUST use \`\\mathrm{TotalSum}\`. 
+            5. **Cleanliness**: NO escaped characters (like \\uXXXX), NO raw JSON, NO script tags. PURE Markdown.
+            6. **Stickers**: Include 5+ flashcards (\`\`\`flashcard\`\`\`) and at least 1 interactive sandbox (\`\`\`sandbox\`).
         `;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
@@ -127,19 +125,11 @@ export async function POST(req: NextRequest) {
                 const reader = response.body?.getReader();
                 if (!reader) return;
 
-                let buffer = '';
                 try {
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
                         
-                        buffer += decoder.decode(value, { stream: true });
-                        
-                        // Gemini sends data as a JSON array [{},{},{}] in chunks.
-                        // We need to parse individual objects from the [ ... ] or [ ... , ... ] chunks.
-                        // A simpler way for streaming is to look for "text": "..." patterns
-                        // But let's try a proper streaming parse if possible.
-                        // Actually, simplified for direct response:
                         controller.enqueue(value);
                     }
                 } catch (err) {
