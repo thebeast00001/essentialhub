@@ -117,7 +117,7 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                     </div>
                     
                     <div className={styles.radioMainTime}>
-                        <span>{m.toString().padStart(2, '0')}</span>.{s.toString().padStart(2, '0')}
+                        <span>{m.toString().padStart(2, '0')}</span>.{Math.floor(s).toString().padStart(2, '0')}
                     </div>
                     
                     <div className={styles.radioSubText}>
@@ -128,47 +128,44 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                             />
                             REC
                         </div>
-                        {formatTime(seconds)}
+                        {formatTime(Math.floor(seconds))}
                     </div>
                 </div>
 
                 <div className={styles.radioRight}>
                     <div className={styles.redNeedle} />
                     
-                    {/* FM Signal Bars (Animated Side Bar) */}
-                    <div className={styles.signalMeter}>
-                        {Array.from({ length: 12 }).map((_, i) => (
-                            <motion.div 
-                                key={i}
-                                className={styles.signalBar}
-                                animate={{ 
-                                    height: isRunning ? [8, 24, 12, 30, 10][i % 5] : 4,
-                                    opacity: isRunning ? [0.6, 1, 0.8][i % 3] : 0.3
-                                }}
-                                transition={{ 
-                                    repeat: Infinity, 
-                                    duration: 0.8 + (i * 0.1),
-                                    ease: "easeInOut"
-                                }}
-                            />
-                        ))}
-                    </div>
-
                     <motion.div 
                         className={styles.ticksList}
                         animate={{ y: offset }}
-                        transition={{ type: "spring", stiffness: 45, damping: 15 }}
+                        transition={{ 
+                            duration: 0.1, 
+                            ease: "linear"
+                        }}
                     >
                         {Array.from({ length: 90 }).map((_, i) => {
                             // Display from high to low mimicking an analog tuner
                             const val = 60 - i + 15; 
                             const isMajor = val % 5 === 0;
                             return (
-                                <div key={i} className={clsx(styles.tick, isMajor && styles.major)}>
+                                <motion.div 
+                                    key={i} 
+                                    className={clsx(styles.tick, isMajor && styles.major)}
+                                    animate={{
+                                        opacity: isRunning ? [0.4, 1, 0.4] : 1,
+                                        width: isMajor ? (isRunning ? [45, 60, 45] : 50) : (isRunning ? [25, 40, 25] : 30)
+                                    }}
+                                    transition={{
+                                        duration: 1.5,
+                                        repeat: Infinity,
+                                        ease: "easeInOut",
+                                        delay: i * 0.05 // Staggered pulse effect
+                                    }}
+                                >
                                     {isMajor && val >= 0 && val <= 60 && (
                                         <span className={styles.tickLabel}>{val}</span>
                                     )}
-                                </div>
+                                </motion.div>
                             )
                         })}
                     </motion.div>
@@ -202,7 +199,7 @@ export default function FocusPage() {
         }
 
         const updateDisplay = () => {
-            const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+            const elapsed = (Date.now() - timerStartedAt) / 1000;
             setDisplaySeconds(Math.max(0, timerSeconds - elapsed));
         };
 
