@@ -32,7 +32,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to fetch transcript. The video might not have captions enabled or is restricted. Try another video.' }, { status: 400 });
         }
 
-        // Using Gemini 2.5 Flash purely without ANY token restrictions whatsoever
+        // Gemini FREE TIER has a strict limit of 250,000 input tokens per minute.
+        // We MUST cap the transcript to ~60,000 characters (approx 15,000 tokens) 
+        // to prevent users hitting the 429 quota error if they test a few videos in a minute.
+        const MAX_CHARS = 60000;
+        let safeTranscript = transcriptText;
+        if (safeTranscript.length > MAX_CHARS) {
+            safeTranscript = safeTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript truncated to prevent Gemini Free Tier Rate Limits...]";
+        }
+
+        // Using Gemini 2.5 Flash
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
@@ -40,7 +49,7 @@ You are an expert student creating the perfect handwritten-style notebook summar
 I will provide you with the transcript of the video. You MUST generate comprehensive, highly structured, and visually descriptive study notes based strictly on the following requirements:
 
 INPUT KNOWLEDGE:
-Video Transcript: ${transcriptText}
+Video Transcript: ${safeTranscript}
 
 OUTPUT FORMAT (VERY IMPORTANT):
 Generate notes in a handwritten-style structured format. The notes must feel like human-made study notes with clarity, structure, and visual explanation. Use clear Markdown.
