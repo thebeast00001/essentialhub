@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
             Output should be PURE Markdown. Be extremely detailed. If the topic is Rotational Motion, cover Moment of Inertia, Torque, Angular Momentum, and Rolling with multiple diagrams and derivations.
         `;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -119,9 +119,11 @@ export async function POST(req: NextRequest) {
 
         if (!response.ok) {
             const err = await response.json();
-            const msg = err.error?.message || 'Gemini API Error';
-            console.error(`Gemini Error (${response.status}):`, msg);
-            throw new Error(msg);
+            const message = err.error?.message || JSON.stringify(err);
+            console.error('--- GEMINI ERROR LOG ---');
+            console.error('Status:', response.status);
+            console.error('Raw Error:', JSON.stringify(err, null, 2));
+            throw new Error(`Gemini API: ${message} (Status: ${response.status})`);
         }
 
         // Custom Stream Transform to extract text from Gemini's JSON stream format
