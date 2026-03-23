@@ -76,23 +76,21 @@ export async function POST(req: NextRequest) {
             You are a Senior Academic Designer and Master Note-Taker. Your goal is to convert the provided transcript into ELITE, PREMIUM study notes that look like a professional, hand-annotated textbook page.
             
             Video ID: ${videoId}
-            Transcript Source: ${transcriptText.substring(0, 15000)}
+            Transcript Source: ${transcriptText.substring(0, 30000)}
 
-            STRICT STYLE GUIDELINES:
-            1. **Persona**: Senior Physics Professor. Use clear, elite academic language. No "fluff".
-            2. **Numericals & Math**: 
-                - Every formula MUST be in its own line using $$ LaTeX $$.
-                - For derivations, use ONE step per line. Do NOT cluster multiple equations in one block. 
-                - Add a short explanation *above* each formula.
-            3. **Illustrations (MANDATORY)**:
-                - Generate at least 2-3 detailed SVGs using \`\`\`svg.
-                - **Style**: Vector diagram style. Line weight 3px. 
-                - **Colors**: Use Deep Blue (#1e3a8a) for main shapes, Indigo (#4f46e5) for vectors/arrows, and Black (#000000) for labels. 
-                - **Avoid Red**: Only use Red (#f43f5e) for "Critical Force" or "Error/Danger" points. 
-                - **NO TEXT OVERLAP**: Labels MUST be offset by 40 units from objects. 
-            4. **Flashcards/Sticky Notes**:
-                - Use \`\`\`flashcard\`\`\` for summaries. Keep them short (Term: Detailed Definition).
-            5. **NO COMPUTER LANGUAGE**: Do not output raw JSON, escaped Unicode (like \\u003c), or any <script> tags. PURE Markdown only.
+            STRICT MISSION:
+            1. **Informative Depth**: Do NOT summarize. Provide a deep, comprehensive academic breakdown. Convert every formula and concept in the transcript into high-value notes.
+            2. **Perfect Illustrations**:
+                - Generate 2-3 **Large-Scale SVGs**. 
+                - **Layout (CRITICAL)**: To avoid overlap, you MUST use a "Centered Group" pattern: \`<g transform="translate(500, 250)">\`.
+                - **Labeling**: Use \`text-anchor="middle"\` for all labels. Ensure no text is closer than 80 units to any shape. 
+                - **Visual style**: Use \`stroke-width="4"\` for main lines. 
+                - **Color palette**: Deep Blue (#1e3a8a), Indigo (#4f46e5), and Black (#000000). 
+            3. **Clutter-Free Math**:
+                - Use $$ LaTeX $$ on its own line for all formulas. 
+                - Add a conceptual "Note" in italics *above* each formula.
+            4. **Language Profile**: Native-level, professional, clear, and encouraging. No broken text. No computer jargon.
+            5. **Interactive Section**: Always include 1 sandbox (\`\`\`sandbox\`) and 2-3 flashcards (\`\`\`flashcard\`).
 
             Output should be PURE Markdown. Be extremely detailed. If the topic is Rotational Motion, cover Moment of Inertia, Torque, Angular Momentum, and Rolling with multiple diagrams and derivations.
         `;
