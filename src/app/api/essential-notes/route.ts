@@ -32,12 +32,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to fetch transcript. The video might not have captions enabled or is restricted. Try another video.' }, { status: 400 });
         }
 
+        // Groq has strict Tokens-Per-Minute limits on the free tier (usually 30k TPM for Llama3)
+        // We will aggressively slice the transcript to a max of ~6000 words (~24,000 characters) to be safe
+        const MAX_CHARS = 24000;
+        let safeTranscript = transcriptText;
+        if (safeTranscript.length > MAX_CHARS) {
+            safeTranscript = safeTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript truncated due to length limits...]";
+        }
+
         const prompt = `
 You are an expert student creating the perfect handwritten-style notebook summary of a YouTube educational video.
 I will provide you with the transcript of the video. You MUST generate comprehensive, highly structured, and visually descriptive study notes based strictly on the following requirements:
 
 INPUT KNOWLEDGE:
-Video Transcript: ${transcriptText}
+Video Transcript: ${safeTranscript}
 
 OUTPUT FORMAT (VERY IMPORTANT):
 Generate notes in a handwritten-style structured format. The notes must feel like human-made study notes with clarity, structure, and visual explanation. Use clear Markdown.
@@ -62,6 +70,7 @@ Do NOT include any external pleasantries, introductions to your answer, or JSON 
             messages: [{ role: 'user', content: prompt }],
             model: 'llama-3.3-70b-versatile',
             stream: true,
+            max_tokens: 3000 // Ensure room left bounds
         });
         
         const encoder = new TextEncoder();
