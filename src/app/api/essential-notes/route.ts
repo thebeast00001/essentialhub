@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
-import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 function extractVideoId(url: string) {
     const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
@@ -32,20 +32,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to fetch transcript. The video might not have captions enabled or is restricted. Try another video.' }, { status: 400 });
         }
 
-        // Groq has strict Tokens-Per-Minute limits on the free tier (usually 30k TPM for Llama3)
-        // We will aggressively slice the transcript to a max of ~6000 words (~24,000 characters) to be safe
-        const MAX_CHARS = 24000;
-        let safeTranscript = transcriptText;
-        if (safeTranscript.length > MAX_CHARS) {
-            safeTranscript = safeTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript truncated due to length limits...]";
-        }
+        // Using Gemini 2.5 Flash purely without ANY token restrictions whatsoever
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
 You are an expert student creating the perfect handwritten-style notebook summary of a YouTube educational video.
 I will provide you with the transcript of the video. You MUST generate comprehensive, highly structured, and visually descriptive study notes based strictly on the following requirements:
 
 INPUT KNOWLEDGE:
-Video Transcript: ${safeTranscript}
+Video Transcript: ${transcriptText}
 
 OUTPUT FORMAT (VERY IMPORTANT):
 Generate notes in a handwritten-style structured format. The notes must feel like human-made study notes with clarity, structure, and visual explanation. Use clear Markdown.
@@ -66,22 +61,15 @@ Educational, student-friendly, concise, revision-focused. Avoid long paragraphs.
 Do NOT include any external pleasantries, introductions to your answer, or JSON formatting. OUTPUT ONLY THE FINAL MARKDOWN NOTES starting immediately with the title.
 `;
 
-        const completion = await groq.chat.completions.create({
-            messages: [{ role: 'user', content: prompt }],
-            model: 'llama-3.3-70b-versatile',
-            stream: true,
-            max_tokens: 3000 // Ensure room left bounds
-        });
+        const result = await model.generateContentStream(prompt);
         
         const encoder = new TextEncoder();
         const readable = new ReadableStream({
             async start(controller) {
                 try {
-                    for await (const chunk of completion) {
-                        const content = chunk.choices[0]?.delta?.content || '';
-                        if (content) {
-                            controller.enqueue(encoder.encode(content));
-                        }
+                    for await (const chunk of result.stream) {
+                        const chunkText = chunk.text();
+                        controller.enqueue(encoder.encode(chunkText));
                     }
                     controller.close();
                 } catch (streamError) {
