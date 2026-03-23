@@ -147,6 +147,33 @@ export default function AiNotesPage() {
         return null;
     };
 
+    // 🧼 ELITE CLEANUP: Fixes Unicode and JSON artifacts from streaming
+    const cleanNotes = (content: string) => {
+        if (!content) return "";
+        
+        let cleaned = content;
+        
+        // 1. Unescape Unicode (\u003c -> <)
+        cleaned = cleaned.replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => {
+            return String.fromCharCode(parseInt(grp, 16));
+        });
+
+        // 2. Fix common streaming JSON artifacts
+        cleaned = cleaned
+            .replace(/\\" /g, '" ')
+            .replace(/ \\"/g, ' "')
+            .replace(/\\"/g, '"')
+            .replace(/\\n/g, '\n')
+            .replace(/\\r/g, '\r')
+            .replace(/\\t/g, '\t')
+            .replace(/\\\\/g, '\\');
+
+        // 3. Remove any leading/trailing garbage
+        cleaned = cleaned.trim();
+        
+        return cleaned;
+    };
+
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isManual && !manualContent.trim()) return;
@@ -160,44 +187,47 @@ export default function AiNotesPage() {
             let finalTranscriptText = isManual ? manualContent : '';
             const vid = extractVideoId(url);
 
-            // BROWSER-TUNNEL: We ask your computer to fetch the data if the server is blocked.
             if (!isManual && vid) {
                 const browserResult = await fetchTranscriptBrowser(vid);
                 if (browserResult && browserResult.length > 100) {
-                    console.log('Browser-Side Scraper SUCCESS. Bypassing Server Block.');
                     finalTranscriptText = browserResult;
                 }
             }
 
-            // ... (Continue to server for Gemini processing)
             const response = await fetch('/api/ai-notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(isManual ? { transcriptText: manualContent } : { url, transcriptText: finalTranscriptText }),
             });
-            // ... (Rest of steaming handling)
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to generate notes');
+                throw new Error(data.error || 'Failed to generate');
             }
 
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
-            if (!reader) throw new Error('No reader found');
+            if (!reader) throw new Error('No stream');
 
-            let fullNotes = '';
+            let rawBuffer = '';
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
                 const chunk = decoder.decode(value, { stream: true });
-                const matches = chunk.matchAll(/"text":\s*"(.*?)"/g);
+                rawBuffer += chunk;
+                
+                // Extraction Logic: Look for all text candidates in the raw stream buffer
+                // Gemini sends JSON chunks like: data: {"candidates":[{"content":{"parts":[{"text":"..."}]}}]}
+                // We'll extract only the values within the "text":"..." blocks
+                const matches = Array.from(rawBuffer.matchAll(/"text":\s*"(.*?)(?<!\\)"/g));
+                let currentContent = '';
                 for (const match of matches) {
-                    let text = match[1];
-                    text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-                    fullNotes += text;
-                    setNotes(fullNotes);
+                    currentContent += match[1];
+                }
+
+                if (currentContent) {
+                    setNotes(currentContent);
                 }
             }
             
@@ -229,13 +259,7 @@ export default function AiNotesPage() {
         element.click();
     };
 
-    // 🧼 CLEANUP LOGIC: Ensure no "computer language" like backticks around SVGs appears
-    const cleanNotes = (content: string) => {
-        if (!content) return "";
-        return content
-            // Special case: sometimes AI puts backticks around KaTeX blocks
-            .replace(/```latex\n?([\s\S]*?)\n?```/gi, '$1');
-    };
+    // ... (rest of the handleGenerate function)
 
     return (
         <div className={styles.container}>

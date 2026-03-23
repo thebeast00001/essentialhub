@@ -69,23 +69,41 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing Gemini API Key' }, { status: 500 });
         }
 
-        // --- GEMINI STREAMING LOGIC ---
-        console.log('Initiating Gemini Streaming (2.5-flash)...');
+        // --- ELITE PROMPT DESIGN ---
+        console.log('Initiating Gemini Streaming (2.5-flash) with Elite Prompt...');
         
         const prompt = `
-            You are a master note-taker. Convert this transcript into elite study notes with SVG diagrams and interactive sandboxes.
+            You are a Senior Academic Designer and Master Note-Taker. Your goal is to convert the provided transcript into ELITE, PREMIUM study notes that look like a professional, hand-annotated textbook page.
             
             Video ID: ${videoId}
-            Transcript: ${transcriptText.substring(0, 30000)}
+            Transcript Source: ${transcriptText.substring(0, 30000)}
 
-            STRICT FORMATTING:
-            1. Use # for Title, ## for Topics.
-            2. Generate high-quality SVG code blocks (viewBox 1000x500).
-            3. Use \`\`\`sandbox type="rotation"\`\`\` or \`\`\`sandbox type="projectile"\`\`\`.
-            4. Use \`\`\`flashcard\`\`\` for definitions.
+            STRICT STYLE GUIDELINES:
+            1. **Persona**: High-value academic tone, clear physics/math explanations, and "Zenith-level" reasoning.
+            2. **Formatting**: 
+                - # [Handwritten Style] Main Topic
+                - ## Detailed Concepts
+                - Use **Bold** for terminology and *Italics* for emphasis.
+                - Use > [!TIP] or > [!IMPORTANT] callouts for exam-critical points.
+            3. **Visual-First Strategy (MANDATORY)**:
+                - For EVERY major concept, generate a beautiful **SVG code block** tagged with \`\`\`svg.
+                - **SVG Design**: 
+                    - Use \`viewBox="0 0 1000 500"\` for a wide, cinematic layout.
+                    - Font: MUST use \`font-family="Caveat, cursive"\` for all labels.
+                    - Colors: Use professional blues (#1e3a8a), slate (#475569), and accent indigo (#6366f1).
+                    - **NO TEXT OVERLAP**: Place text labels at least 40px away from lines. Use offsets.
+                    - Style: Simple, clean, vector-diagram style.
+            4. **Interactive Simulations**:
+                - Use \`\`\`sandbox type="rotation"\`\`\` to insert a live 3D disk simulation for rotational inertia.
+                - Use \`\`\`sandbox type="projectile"\`\`\` for kinematics.
+            5. **Structured Learning**:
+                - Use \`\`\`flashcard\`\`\` blocks (Term: Definition) for memorization.
+                - Each mathematical derivation step must be on a new line using $$ LaTeX $$.
+
+            Output should be PURE Markdown. Be extremely detailed. If the topic is Rotational Motion, cover Moment of Inertia, Torque, Angular Momentum, and Rolling with multiple diagrams and derivations.
         `;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -101,7 +119,9 @@ export async function POST(req: NextRequest) {
 
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.error?.message || 'Gemini Streaming Failed');
+            const msg = err.error?.message || 'Gemini API Error';
+            console.error(`Gemini Error (${response.status}):`, msg);
+            throw new Error(msg);
         }
 
         // Custom Stream Transform to extract text from Gemini's JSON stream format
