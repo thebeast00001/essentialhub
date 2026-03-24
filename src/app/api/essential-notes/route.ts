@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
-import { YoutubeTranscript } from 'youtube-transcript';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { extractVideoId, getTranscriptWithFallback } from '@/lib/youtube';
+import { getCachedNotes, setCachedNotes } from '@/lib/cache';
+
+// REMOVED Edge Runtime - Now using Node.js for child_process visibility (Whisper)
+// export const runtime = 'edge';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
-function extractVideoId(url: string) {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-}
 
 export async function POST(req: Request) {
     try {
@@ -23,77 +21,150 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
         }
 
-        let transcriptText = '';
+        // 1. Check Cache First
         try {
-            const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-            transcriptText = transcript.map((t) => t.text).join(' ');
-        } catch (error) {
-            console.error('Transcript fetch error:', error);
-            return NextResponse.json({ error: 'Failed to fetch transcript. The video might not have captions enabled or is restricted. Try another video.' }, { status: 400 });
+            const cached = await getCachedNotes(videoId);
+            if (cached) {
+                console.log(`Cache hit for video: ${videoId}`);
+                return NextResponse.json({ 
+                    success: true, 
+                    source: "transcript", // Use cached data
+                    notes: cached.notes,
+                    keyPoints: cached.keyPoints,
+                    title: cached.title,
+                    summary: cached.summary
+                });
+            }
+        } catch (cacheError) {
+            console.error('Cache check failed:', cacheError);
         }
 
-        // Gemini FREE TIER has a strict limit of 250,000 input tokens per minute.
-        // We MUST cap the transcript to ~60,000 characters (approx 15,000 tokens) 
-        // to prevent users hitting the 429 quota error if they test a few videos in a minute.
-        const MAX_CHARS = 60000;
+        // 2. Fetch Transcript with Native or Whisper Fallback
+        const transcriptRes = await getTranscriptWithFallback(videoId);
+        
+        if (!transcriptRes.success) {
+            return NextResponse.json({ 
+                success: false, 
+                reason: transcriptRes.reason || "Unable to extract content" 
+            }, { status: 400 });
+        }
+
+        const transcriptText = transcriptRes.text!;
+        const MAX_CHARS = 600000;
         let safeTranscript = transcriptText;
         if (safeTranscript.length > MAX_CHARS) {
-            safeTranscript = safeTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript truncated to prevent Gemini Free Tier Rate Limits...]";
+            safeTranscript = safeTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript limit reached. Summarizing content...]";
         }
 
-        // Using Gemini 2.5 Flash
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
+        // 3. Ultra High Quality Gemini Prompt (Hardened Professor Persona)
         const prompt = `
-You are an expert student creating the perfect handwritten-style notebook summary of a YouTube educational video.
-I will provide you with the transcript of the video. You MUST generate comprehensive, highly structured, and visually descriptive study notes based strictly on the following requirements:
+You are an elite AI professor, researcher, and visual thinker.
+Your task is to convert raw transcript text into the most insightful, structured, and visually clear notes possible.
 
-INPUT KNOWLEDGE:
-Video Transcript: ${safeTranscript}
+STRICT RULES:
+1. Deep Understanding: Do not summarize blindly. Extract core concepts, hidden insights, and intent.
+2. Structure: TITLE | OVERVIEW | DETAILED NOTES | KEY INSIGHTS | MENTAL MODELS | ACTIONABLE POINTS | SIMPLIFIED EXPLANATION.
+3. Roman Hinglish Persona: Use your smart topper-friend voice (boss, suno, logic pakdo).
+4. NO HINDI ALPHABETS: Use ONLY Roman script.
+5. BEAUTY: Use markdown tables, bold highlights, and clean spacing.
 
-OUTPUT FORMAT (VERY IMPORTANT):
-Generate notes in a handwritten-style structured format. The notes must feel like human-made study notes with clarity, structure, and visual explanation. Use clear Markdown.
+Return your response in this JSON format (no backticks):
+{
+  "title": "Creative Title",
+  "overview": "Summary (2-3 lines)",
+  "notes": "Detailed premium notes with comparisons, definitions, and highlights",
+  "keyPoints": ["Powerful Takeaway 1", "Powerful Takeaway 2"],
+  "mentalModels": ["Relevant framework used (e.g., First Principles)"],
+  "actionablePoints": ["Concrete step the user can take"],
+  "simplifiedExplanation": "ELI15 explanation"
+}
 
-1. Clean Title & Topic: Extract the main topic and create a clean, short title (e.g., "# Understanding Newton's Laws of Motion").
-2. Sectioned Notes: Break content into clear sections using headings (##), subheadings (###), and bullet points (-). Each section should represent a single concept.
-3. Handwritten-Style Explanation: Write like a smart student would. Simple language, short sentences, easy to revise, NO fluff or generic filler sentences.
-4. Key Points & Highlights: Highlight important ideas! Use blockquotes (>) for boxed summaries, bolding (**text**) for keywords, and clear structures for Definitions, Formulas, and Rules.
-5. Visual Illustration Instructions: For each major concept, include visual description blocks. Format them EXACTLY like this on a new line: [ILLUSTRATION: Draw a diagram showing force acting on a box with arrows labeled F1 and F2].
-6. Flowcharts & Structures: Where applicable, convert explanations into step-by-step flows using arrows (e.g., Force ➡️ Acceleration ➡️ Motion).
-7. Examples & Analogies: Add simple examples to improve understanding (e.g., "Example: A moving car stopping when brakes are applied").
-8. Summary Section: At the end, include a '## Summary & Revision' section with 5-7 key takeaways in bullet points.
-9. Enhancements: Include a small '## Quick Quiz' section at the end. Mark crucial points with "🚨 IMPORTANT FOR EXAMS 🚨". Ensure formulas are formatted beautifully in LaTeX using double $$ for block (e.g., $$ F = ma $$) and single $ for inline (e.g., $E=mc^2$). NEVER put spaces directly after a backslash in LaTeX equations.
-
-TONE:
-Educational, student-friendly, concise, revision-focused. Avoid long paragraphs. Use smart formatting.
-
-Do NOT include any external pleasantries, introductions to your answer, or JSON formatting. OUTPUT ONLY THE FINAL MARKDOWN NOTES starting immediately with the title.
+INPUT:
+${safeTranscript}
 `;
 
-        const result = await model.generateContentStream(prompt);
-        
-        const encoder = new TextEncoder();
-        const readable = new ReadableStream({
-            async start(controller) {
-                try {
-                    for await (const chunk of result.stream) {
-                        const chunkText = chunk.text();
-                        controller.enqueue(encoder.encode(chunkText));
-                    }
-                    controller.close();
-                } catch (streamError) {
-                    console.error('Streaming error:', streamError);
-                    controller.error(streamError);
-                }
-            }
-        });
+        // Multi-Model Fallback Chain for Stability
+        const modelsToTry = ["gemini-1.5-flash-002", "gemini-2.0-flash-exp", "gemini-2.5-flash"];
+        let result = null;
+        let lastError: any = null;
 
-        return new Response(readable, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Transfer-Encoding': 'chunked',
-            },
-        });
+        for (const modelName of modelsToTry) {
+            try {
+                const genModel = genAI.getGenerativeModel({ model: modelName });
+                const generation = await genModel.generateContent(prompt);
+                result = generation.response.text();
+                break;
+            } catch (error: any) {
+                lastError = error;
+                if (error?.message?.includes('404') || error?.message?.includes('429')) {
+                    continue;
+                }
+                break;
+            }
+        }
+
+        if (!result) {
+            return NextResponse.json({ 
+                error: lastError?.message || 'Failed to initialize AI models.' 
+            }, { status: 500 });
+        }
+
+        // 4. Parse and Save
+        let sanitizedResult = result.trim();
+        if (sanitizedResult.startsWith('```json')) {
+            sanitizedResult = sanitizedResult.replace(/^```json/, '').replace(/```$/, '').trim();
+        } else if (sanitizedResult.startsWith('```')) {
+            sanitizedResult = sanitizedResult.replace(/^```/, '').replace(/```$/, '').trim();
+        }
+
+        try {
+            const parsedData = JSON.parse(sanitizedResult);
+            
+            // Build the final display notes
+            const fullNotesMarkdown = `
+# ${parsedData.title}
+
+${parsedData.overview}
+
+## 📝 Detailed Study Notes
+${parsedData.notes}
+
+## 🧠 Mental Models & Frameworks
+${parsedData.mentalModels && parsedData.mentalModels.length > 0 ? parsedData.mentalModels.map((m: string) => `- ${m}`).join('\n') : "Internal Logical Synthesis"}
+
+## ✅ Actionable Points
+${parsedData.actionablePoints && parsedData.actionablePoints.length > 0 ? parsedData.actionablePoints.map((p: string) => `- ${p}`).join('\n') : "Apply these concepts in your next problem set!"}
+
+## 👶 Simplified (Eli15)
+${parsedData.simplifiedExplanation}
+            `.trim();
+
+            const responsePayload = {
+                success: true,
+                source: transcriptRes.source,
+                notes: fullNotesMarkdown,
+                keyPoints: parsedData.keyPoints,
+                title: parsedData.title,
+                summary: parsedData.overview
+            };
+
+            // Cache the result
+            try {
+                await setCachedNotes(videoId, {
+                    title: parsedData.title,
+                    notes: fullNotesMarkdown,
+                    keyPoints: parsedData.keyPoints,
+                    summary: parsedData.overview
+                });
+            } catch (cacheError) {
+                console.error('Failed to cache notes:', cacheError);
+            }
+
+            return NextResponse.json(responsePayload);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError, result);
+            return NextResponse.json({ error: 'AI returned malformed data. Try again.' }, { status: 500 });
+        }
 
     } catch (error: any) {
         console.error('Essential Notes generation error:', error);
