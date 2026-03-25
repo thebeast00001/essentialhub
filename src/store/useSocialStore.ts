@@ -226,8 +226,9 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         };
 
         const updateUser = <T extends { id: string; updated_at?: string }>(u: T): T => {
-            const is_online = checkOnline(u);
             const metadata = get().presenceMetadata[u.id];
+            const is_online = !!metadata || checkOnline(u);
+            
             return {
                 ...u,
                 is_online,
@@ -422,8 +423,9 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                 
                 activeIds.forEach(id => {
                     const presence = newState[id] as any;
-                    if (presence?.[0]) {
-                        metadata[id] = {
+                    if (presence?.[0] && presence[0].user_id) {
+                        const uid = presence[0].user_id;
+                        metadata[uid] = {
                             status: presence[0].status || 'available',
                             roomId: presence[0].roomId
                         };
