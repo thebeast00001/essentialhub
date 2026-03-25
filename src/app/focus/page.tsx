@@ -90,7 +90,7 @@ const HourglassClock = ({ seconds }: { seconds: number }) => {
                 </svg>
 
                 <div className={styles.timerNumber}>{m}</div>
-                <div className={styles.timerNumber}>{s.toString().padStart(2, '0')}</div>
+                <div className={styles.timerNumber}>{Math.floor(s).toString().padStart(2, '0')}</div>
             </div>
         </div>
     );
@@ -157,7 +157,7 @@ const RadioClock = ({ seconds, isRunning }: { seconds: number, isRunning: boolea
                             return (
                                 <div key={idx} className={clsx(styles.tick, isMajor && styles.major)}>
                                     {isMajor && val >= 0 && (
-                                        <span className={styles.tickLabel}>{val}</span>
+                                        <span className={styles.tickLabel}>{val % 60}</span>
                                     )}
                                 </div>
                             )

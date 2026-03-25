@@ -225,7 +225,7 @@
 .clockWrapper {
     position: relative;
     width: 450px;
-    height: 820px; /* Increased to separate the dials and prevent numbers from overlapping */
+    height: 820px; /* Restored to original height */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -247,6 +247,7 @@
     align-items: center;
     justify-content: center;
     left: calc(50% - 210px);
+    z-index: 1; /* Keep dials behind the hourglass */
 }
 
 .topDial { top: 0px; }
@@ -471,7 +472,7 @@
     transform: translate(-50%, -50%);
     width: 160px;
     height: 220px;
-    z-index: 20;
+    z-index: 20; /* Keep hourglass frame on top */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -494,7 +495,7 @@
     font-family: var(--font-display);
     color: var(--text-primary);
     letter-spacing: -0.05em;
-    z-index: 25;
+    z-index: 30; /* Keep numbers on top of everything */
 }
 
 /* ─── Controls ───────────────────────────────────────────── */
