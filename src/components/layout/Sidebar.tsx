@@ -14,7 +14,6 @@ import {
     Flame,
     BarChart3,
     Timer,
-    Headphones,
     Users,
     Settings,
     LogOut,
@@ -22,8 +21,7 @@ import {
     Zap,
     MoreHorizontal,
     UserPlus,
-    Palette,
-    BookOpen
+    Palette
 } from 'lucide-react';
 import { useTaskStore, getLocalDateStr } from '@/store/useTaskStore';
 import { MomentumBar } from './MomentumBar';
@@ -41,6 +39,7 @@ const generalItems = [
 ];
 
 const toolItems = [
+    { icon: Zap, label: 'Study Room', href: '/study-room' },
     { icon: Flame, label: 'Habits', href: '/habits' },
     { icon: BarChart3, label: 'Analytics', href: '/insights' },
     { icon: Timer, label: 'Timer', href: '/focus' },

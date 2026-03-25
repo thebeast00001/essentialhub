@@ -34,19 +34,32 @@ export const useUserStore = create<UserState>()((set, get) => ({
     },
 
     syncProfile: async (profile: ProfileUpsertPayload) => {
-        const { userId } = get();
-        if (!userId) return;
+        const { userId, isSyncing } = get();
+        if (!userId || isSyncing) return;
 
-        const { error } = await supabase.from('profiles').upsert({
-            id: userId,
-            email: profile.email,
-            username: profile.username,
-            full_name: profile.full_name,
-            avatar_url: profile.avatar_url,
-            updated_at: new Date().toISOString(),
-        });
+        set({ isSyncing: true });
+        try {
+            const { error } = await supabase.from('profiles').upsert({
+                id: userId,
+                email: profile.email,
+                username: profile.username,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                updated_at: new Date().toISOString(),
+            }, { 
+                onConflict: 'id',
+                ignoreDuplicates: false 
+            });
 
-        if (error) console.error('Sync Profile Error:', error.message);
+            if (error) {
+                console.error('Sync Profile Error:', error.message);
+                // If it's a timeout, it might be a temporary DB load issue
+            }
+        } catch (err) {
+            console.error('Fatal Sync Profile Error:', err);
+        } finally {
+            set({ isSyncing: false });
+        }
     },
 
     updatePresence: async () => {

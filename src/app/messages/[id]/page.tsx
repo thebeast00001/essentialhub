@@ -151,7 +151,7 @@ export default function FriendChatPage() {
                     let displayContent = msg.content;
                     if (isInvite) {
                         const parts = msg.content.replace('[STUDY_INVITE]', '').split('|');
-                        actionUrl = `/study?room=${parts[0]}`;
+                        actionUrl = `/study-room?room=${parts[0]}`;
                         displayContent = parts[1];
                     }
 

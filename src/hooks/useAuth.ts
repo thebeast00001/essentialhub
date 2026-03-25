@@ -2,7 +2,7 @@
 
 import { useUser, useAuth as useClerkAuth, useClerk } from "@clerk/nextjs";
 import { useTaskStore } from '@/store/useTaskStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export const useAuth = () => {
     const { user: clerkUser, isLoaded, isSignedIn } = useUser();
@@ -10,6 +10,7 @@ export const useAuth = () => {
     const { signOut: globalSignOut } = useClerk();
     const { setUserId, syncProfile } = useTaskStore();
     const [user, setUser] = useState<any>(null);
+    const lastSyncUserId = useRef<string | null>(null);
 
     useEffect(() => {
         const initializeUser = async () => {
@@ -24,15 +25,15 @@ export const useAuth = () => {
                         await clerkUser.update({
                             username: newUsername
                         });
+                        // update() might trigger a reference change for clerkUser, causing effect to re-run
                         username = newUsername;
                     } catch (err) {
                         console.error("Failed to auto-assign username:", err);
-                        // Fallback to email split if update fails (e.g. usernames not enabled in dashboard)
                         username = clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 'operator';
                     }
                 }
 
-                // Normalize Clerk user to match the app's expectations
+                // Normalization
                 const normalizedUser = {
                     id: clerkUser.id,
                     email: clerkUser.primaryEmailAddress?.emailAddress,
@@ -46,20 +47,23 @@ export const useAuth = () => {
                 setUser(normalizedUser);
                 setUserId(clerkUser.id);
                 
-                // Proactive Profile Synchronization (Future-Proofing for Existing Users)
-                // This ensures that as we update the app's metadata requirements, 
-                // existing users get their data synced to the latest schema on login.
-                const profileUpdate = {
-                    email: normalizedUser.email || '',
-                    username: normalizedUser.user_metadata.username,
-                    full_name: normalizedUser.user_metadata.full_name,
-                    avatar_url: normalizedUser.user_metadata.avatar_url
-                };
+                // Optimized Profile Synchronization
+                // Avoid redundant syncs if the essential data hasn't changed or we just synced this ID
+                if (lastSyncUserId.current !== clerkUser.id) {
+                    const profileUpdate = {
+                        email: normalizedUser.email || '',
+                        username: normalizedUser.user_metadata.username,
+                        full_name: normalizedUser.user_metadata.full_name,
+                        avatar_url: normalizedUser.user_metadata.avatar_url
+                    };
 
-                syncProfile(profileUpdate);
+                    await syncProfile(profileUpdate);
+                    lastSyncUserId.current = clerkUser.id;
+                }
             } else if (isLoaded && !isSignedIn) {
                 setUser(null);
                 setUserId('');
+                lastSyncUserId.current = null;
             }
         };
 
@@ -67,13 +71,13 @@ export const useAuth = () => {
 
         // Online Presence Heartbeat
         const heartbeat = setInterval(() => {
-            if (isLoaded && isSignedIn && clerkUser) {
+            if (isSignedIn && clerkUser) {
                 useTaskStore.getState().updatePresence();
             }
-        }, 60000); // Pulse every 60s
+        }, 60000);
 
         return () => clearInterval(heartbeat);
-    }, [clerkUser, isLoaded, isSignedIn, setUserId, syncProfile]);
+    }, [clerkUser?.id, isLoaded, isSignedIn, setUserId, syncProfile]);
 
     const signOut = async () => {
         await globalSignOut();
