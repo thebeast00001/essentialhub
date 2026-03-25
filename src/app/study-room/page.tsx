@@ -24,8 +24,7 @@ import { clsx } from 'clsx';
 
 function StudyRoomContent() {
     const { user } = useAuth();
-    const { friends, fetchFriends, createPost } = useTaskStore();
-    const { setPresenceMetadata } = useSocialStore();
+    const { setPresenceMetadata, friends, fetchFriends, recalculatePresence } = useSocialStore();
     const searchParams = useSearchParams();
     
     // Page State
@@ -52,19 +51,26 @@ function StudyRoomContent() {
     useEffect(() => {
         setMounted(true);
         fetchFriends();
+
+        // Refresh presence every 10s so the sidebar stays live
+        const presencePoll = setInterval(() => {
+            recalculatePresence();
+        }, 10_000);
         
         // Handle Auto-Join from Invitation
         if (searchParams?.get('autoJoin') === 'true') {
             const timer = setTimeout(() => {
                 handleConnectToggle();
-            }, 800); // Give UI a moment to settle
+            }, 800);
             return () => {
                 clearTimeout(timer);
+                clearInterval(presencePoll);
                 stopAllStreams();
             };
         }
 
         return () => {
+            clearInterval(presencePoll);
             stopAllStreams();
             setPresenceMetadata('available');
         };

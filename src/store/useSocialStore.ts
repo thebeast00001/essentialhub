@@ -226,9 +226,8 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         };
 
         const updateUser = <T extends { id: string; updated_at?: string }>(u: T): T => {
+            const is_online = checkOnline(u);
             const metadata = get().presenceMetadata[u.id];
-            const is_online = !!metadata || checkOnline(u);
-            
             return {
                 ...u,
                 is_online,
@@ -413,28 +412,37 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                 }
             });
 
-        // Presence channel
+        // Presence channel — keyed by socket ID, user identity is inside payload
         const presenceChannel = supabase.channel('presence-sync');
-        presenceChannel
-            .on('presence', { event: 'sync' }, () => {
-                const newState = presenceChannel.presenceState();
-                const activeIds = Object.keys(newState);
-                const metadata: Record<string, { status: string; roomId?: string }> = {};
-                
-                activeIds.forEach(id => {
-                    const presence = newState[id] as any;
-                    if (presence?.[0] && presence[0].user_id) {
-                        const uid = presence[0].user_id;
+
+        const rebuildPresence = () => {
+            const newState = presenceChannel.presenceState() as Record<string, any[]>;
+            const onlineIds: string[] = [];
+            const metadata: Record<string, { status: string; roomId?: string }> = {};
+
+            Object.values(newState).forEach(presences => {
+                presences.forEach((p: any) => {
+                    const uid = p.user_id;
+                    if (!uid) return;
+                    if (!onlineIds.includes(uid)) onlineIds.push(uid);
+                    // Keep the 'most active' status (focusing > available)
+                    if (!metadata[uid] || p.status === 'focusing') {
                         metadata[uid] = {
-                            status: presence[0].status || 'available',
-                            roomId: presence[0].roomId
+                            status: p.status || 'available',
+                            roomId: p.roomId,
                         };
                     }
                 });
+            });
 
-                set({ onlineIds: activeIds, presenceMetadata: metadata });
-                get().recalculatePresence();
-            })
+            set({ onlineIds, presenceMetadata: metadata });
+            get().recalculatePresence();
+        };
+
+        presenceChannel
+            .on('presence', { event: 'sync' }, rebuildPresence)
+            .on('presence', { event: 'join' }, rebuildPresence)
+            .on('presence', { event: 'leave' }, rebuildPresence)
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
                     await presenceChannel.track({ user_id: userId, status: 'available' });
@@ -469,8 +477,10 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         if (requestsErr) console.error('Fetch Requests Error:', requestsErr.message);
 
         if (friendsData) {
+            const { presenceMetadata } = get();
             const mappedFriends: Friend[] = (friendsData as Array<{ profiles: DbProfile }>).map((f) => {
                 const profile = f.profiles;
+                const meta = presenceMetadata[profile.id];
                 return {
                     id: profile.id,
                     username: profile.username,
@@ -478,7 +488,9 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                     avatar_url: profile.avatar_url,
                     productivity_score: profile.productivity_score,
                     updated_at: profile.updated_at,
-                    is_online: isOnlineByTimestamp(profile.updated_at, 300_000),
+                    is_online: meta ? true : isOnlineByTimestamp(profile.updated_at, 300_000),
+                    status: meta?.status as any,
+                    currentRoomId: meta?.roomId,
                 };
             });
             set({ friends: mappedFriends });
@@ -590,17 +602,25 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         const { userId, presenceChannel } = get();
         if (!userId) return;
         
+        const payload = { user_id: userId, status, roomId };
+
         if (presenceChannel && presenceChannel.state === 'joined') {
-            presenceChannel.track({ user_id: userId, status, roomId });
+            presenceChannel.track(payload);
         } else if (presenceChannel) {
-            // If channel exists but not joined, it will track on subscribe success in init
-            console.warn('[Presence] Channel not joined yet, skipping track for status:', status);
+            console.warn('[Presence] Channel not joined yet, will track on join.');
+            // Re-try once subscribed
+            const unsub = presenceChannel.subscribe(async (s: string) => {
+                if (s === 'SUBSCRIBED') {
+                    await presenceChannel.track(payload);
+                    unsub();
+                }
+            });
         } else {
             // Fallback: create and subscribe if missing
             const ch = supabase.channel('presence-sync');
             ch.subscribe(async (s) => {
                 if (s === 'SUBSCRIBED') {
-                    await ch.track({ user_id: userId, status, roomId });
+                    await ch.track(payload);
                 }
             });
             set({ presenceChannel: ch });
