@@ -7,9 +7,43 @@ import { useTaskStore, getLocalDateStr } from '@/store/useTaskStore';
 import styles from './AICommandCenter.module.css';
 import { clsx } from 'clsx';
 
+const QuickActions = ({ setHistory, processCommand }: { setHistory: any, processCommand: any }) => (
+    <div className={styles.quickActions}>
+        <button className={styles.actionChip} onClick={() => {
+            setHistory((prev: any) => [...prev, { role: 'user', content: 'Status summary' }]);
+            setTimeout(() => processCommand('status'), 300);
+        }}>
+            <Zap size={10} />
+            Summary
+        </button>
+        <button className={styles.actionChip} onClick={() => {
+            setHistory((prev: any) => [...prev, { role: 'user', content: 'Show my tasks' }]);
+            setTimeout(() => processCommand('show tasks'), 300);
+        }}>
+            <CheckCircle2 size={10} />
+            Tasks
+        </button>
+        <button className={styles.actionChip} onClick={() => {
+            setHistory((prev: any) => [...prev, { role: 'user', content: 'Check habits' }]);
+            setTimeout(() => processCommand('habit'), 300);
+        }}>
+            <Sparkles size={10} />
+            Habits
+        </button>
+        <button className={styles.actionChip} onClick={() => {
+            setHistory((prev: any) => [...prev, { role: 'user', content: 'Start focus timer' }]);
+            setTimeout(() => processCommand('start timer'), 300);
+        }}>
+            <Clock size={10} />
+            Timer
+        </button>
+    </div>
+);
+
 export const AICommandCenter = () => {
     const [mounted, setMounted] = useState(false);
     const [input, setInput] = useState('');
+    const [isActionsVisible, setIsActionsVisible] = useState(true);
 
     useEffect(() => {
         setMounted(true);
@@ -100,38 +134,7 @@ export const AICommandCenter = () => {
         setHistory(prev => [...prev, { role: 'bot', content: response }]);
     };
 
-    const QuickActions = () => (
-        <div className={styles.quickActions}>
-            <button className={styles.actionChip} onClick={() => {
-                setHistory(prev => [...prev, { role: 'user', content: 'Status summary' }]);
-                setTimeout(() => processCommand('status'), 300);
-            }}>
-                <Zap size={10} />
-                Summary
-            </button>
-            <button className={styles.actionChip} onClick={() => {
-                setHistory(prev => [...prev, { role: 'user', content: 'Show my tasks' }]);
-                setTimeout(() => processCommand('show tasks'), 300);
-            }}>
-                <CheckCircle2 size={10} />
-                Tasks
-            </button>
-            <button className={styles.actionChip} onClick={() => {
-                setHistory(prev => [...prev, { role: 'user', content: 'Check habits' }]);
-                setTimeout(() => processCommand('habit'), 300);
-            }}>
-                <Sparkles size={10} />
-                Habits
-            </button>
-            <button className={styles.actionChip} onClick={() => {
-                setHistory(prev => [...prev, { role: 'user', content: 'Start focus timer' }]);
-                setTimeout(() => processCommand('start timer'), 300);
-            }}>
-                <Clock size={10} />
-                Timer
-            </button>
-        </div>
-    );
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -144,8 +147,6 @@ export const AICommandCenter = () => {
         // Simulate "thinking" for legit feel
         setTimeout(() => processCommand(currentInput), 300);
     };
-
-    const [isActionsVisible, setIsActionsVisible] = useState(true);
 
     return (
         <div className={styles.sidebarPanel}>
@@ -184,7 +185,7 @@ export const AICommandCenter = () => {
                         exit={{ height: 0, opacity: 0 }}
                         className={styles.quickActionsWrapper}
                     >
-                        <QuickActions />
+                        <QuickActions setHistory={setHistory} processCommand={processCommand} />
                     </motion.div>
                 )}
             </AnimatePresence>
