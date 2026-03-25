@@ -189,3 +189,54 @@
     font-style: italic;
     margin-top: -4px;
 }
+
+.quickActionsWrapper {
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.quickActions {
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.actionChip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.actionChip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+.toggleActionsBtn {
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.toggleActionsBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--accent-primary);
+}

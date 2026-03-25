@@ -236,7 +236,7 @@ export default function CommandCenter() {
           <motion.div className={styles.heroSection} variants={itemVariants}>
             <div className={styles.heroMain}>
               <h1 className={styles.greetingTitle}>
-                {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Zenith User'}
+                {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Essential User'}
               </h1>
               <div className={styles.dailyMantra}>
                 <Sparkles size={16} className={styles.mantraIcon} />
@@ -314,7 +314,7 @@ export default function CommandCenter() {
           <motion.div className={styles.splitSection} variants={itemVariants}>
             <div className={styles.taskSide}>
               <div className={styles.sectionHeading}>
-                <h2>Zenith AI Assistant</h2>
+                <h2>Essential AI Assistant</h2>
                 <div className={styles.aiBadge}>
                   <Sparkles size={14} />
                   Live Assistant
@@ -330,7 +330,7 @@ export default function CommandCenter() {
                 <h2>Strategic Command</h2>
                 <div className={styles.aiBadge}>
                   <Sparkles size={14} />
-                  Zenith AI
+                  Essential AI
                 </div>
               </div>
               <div className={styles.commandCenterCard}>

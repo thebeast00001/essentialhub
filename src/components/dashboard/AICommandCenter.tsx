@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Terminal, ArrowRight, User, Bot, Zap } from 'lucide-react';
+import { Sparkles, X, Terminal, ArrowRight, User, Bot, Zap, CheckCircle2, Clock } from 'lucide-react';
 import { useTaskStore, getLocalDateStr } from '@/store/useTaskStore';
 import styles from './AICommandCenter.module.css';
 import { clsx } from 'clsx';
@@ -100,6 +100,39 @@ export const AICommandCenter = () => {
         setHistory(prev => [...prev, { role: 'bot', content: response }]);
     };
 
+    const QuickActions = () => (
+        <div className={styles.quickActions}>
+            <button className={styles.actionChip} onClick={() => {
+                setHistory(prev => [...prev, { role: 'user', content: 'Status summary' }]);
+                setTimeout(() => processCommand('status'), 300);
+            }}>
+                <Zap size={10} />
+                Summary
+            </button>
+            <button className={styles.actionChip} onClick={() => {
+                setHistory(prev => [...prev, { role: 'user', content: 'Show my tasks' }]);
+                setTimeout(() => processCommand('show tasks'), 300);
+            }}>
+                <CheckCircle2 size={10} />
+                Tasks
+            </button>
+            <button className={styles.actionChip} onClick={() => {
+                setHistory(prev => [...prev, { role: 'user', content: 'Check habits' }]);
+                setTimeout(() => processCommand('habit'), 300);
+            }}>
+                <Sparkles size={10} />
+                Habits
+            </button>
+            <button className={styles.actionChip} onClick={() => {
+                setHistory(prev => [...prev, { role: 'user', content: 'Start focus timer' }]);
+                setTimeout(() => processCommand('start timer'), 300);
+            }}>
+                <Clock size={10} />
+                Timer
+            </button>
+        </div>
+    );
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
@@ -112,12 +145,21 @@ export const AICommandCenter = () => {
         setTimeout(() => processCommand(currentInput), 300);
     };
 
+    const [isActionsVisible, setIsActionsVisible] = useState(true);
+
     return (
         <div className={styles.sidebarPanel}>
             <div className={styles.header}>
                 <div className={styles.headerTitle}>
                     <Terminal size={14} />
-                    <span>AI ASSISTANT</span>
+                    <span>ESSENTIAL ASSISTANT</span>
+                </div>
+                <div 
+                    className={styles.toggleActionsBtn}
+                    onClick={() => setIsActionsVisible(!isActionsVisible)}
+                    title={isActionsVisible ? "Hide Quick Actions" : "Show Quick Actions"}
+                >
+                    <Zap size={14} fill={isActionsVisible ? "currentColor" : "none"} />
                 </div>
             </div>
 
@@ -133,6 +175,19 @@ export const AICommandCenter = () => {
                     </div>
                 ))}
             </div>
+
+            <AnimatePresence>
+                {isActionsVisible && (
+                    <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className={styles.quickActionsWrapper}
+                    >
+                        <QuickActions />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <form className={styles.inputArea} onSubmit={handleSubmit}>
                 <ArrowRight size={16} className={styles.promptIcon} />
