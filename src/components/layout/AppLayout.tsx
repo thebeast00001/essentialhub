@@ -3,7 +3,7 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
 import { CommandPalette } from '../ui/CommandPalette';
-import { StudyInviteListener } from '../notifications/StudyInviteListener';
+
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -73,7 +73,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <CommandPalette />
-            <StudyInviteListener />
             <main className={styles.main}>
                 <motion.div 
                     className={styles.content}

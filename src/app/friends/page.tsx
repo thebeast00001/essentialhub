@@ -101,6 +101,7 @@ export default function SocialCircle() {
 
     // User Search State
     const [userSearchTerm, setUserSearchTerm] = useState('');
+    const [roomJoinKey, setRoomJoinKey] = useState('');
     const [searchStatus, setSearchStatus] = useState<{ type: 'success' | 'error' | 'loading' | null, message: string }>({ type: null, message: '' });
 
     useEffect(() => {
@@ -210,6 +211,11 @@ export default function SocialCircle() {
             setSearchStatus({ type: 'error', message: result.message });
         }
         setTimeout(() => setSearchStatus({ type: null, message: '' }), 5000);
+    };
+
+    const handleJoinRoomByKey = () => {
+        if (!roomJoinKey.trim()) return;
+        window.location.href = `/study-room?room=${roomJoinKey}&autoJoin=true`;
     };
 
     const handleCommentSubmit = async (postId: string) => {
@@ -736,6 +742,30 @@ export default function SocialCircle() {
                 </main>
 
                 <aside className={styles.rightCol}>
+                    <div className={styles.activityCard}>
+                        <div className={styles.cardHeader}><h4>Join Study Pulse</h4></div>
+                        <div className={styles.searchUserBox}>
+                            <div className={styles.searchUserInputWrapper} style={{ background: 'rgba(255, 138, 0, 0.05)', borderColor: 'rgba(255, 138, 0, 0.2)' }}>
+                                <Zap size={16} color="var(--accent-orange)" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter Room Key..." 
+                                    value={roomJoinKey}
+                                    onChange={(e) => setRoomJoinKey(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleJoinRoomByKey()}
+                                />
+                                <button 
+                                    className={styles.addBtn} 
+                                    onClick={handleJoinRoomByKey}
+                                    disabled={!roomJoinKey.trim()}
+                                    style={{ background: 'var(--accent-orange)', color: '#000' }}
+                                >
+                                    <Send size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className={styles.activityCard}>
                         <div className={styles.cardHeader}><h4>Find New Friends</h4></div>
                         <div className={styles.searchUserBox}>

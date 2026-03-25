@@ -38,6 +38,8 @@ interface SocialState {
     following: UserProfile[];
     friends: Friend[];
     pendingRequests: PendingFriendRequest[];
+    presenceMetadata: Record<string, { status: string; roomId?: string }>; // Map of userId -> status info
+    presenceChannel: any | null;
     loadingSocial: boolean;
 
     // Internal mapping helpers
@@ -55,7 +57,7 @@ interface SocialState {
     addFriendByUsername: (username: string) => Promise<ActionResult>;
     acceptFriendRequest: (requestId: string) => Promise<void>;
     sendMessage: (friendId: string, message: string) => Promise<void>;
-    inviteToStudyRoom: (friendId: string, roomId: string) => Promise<void>;
+    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy', roomId?: string) => void;
 
     // Posts & Comments
     fetchPosts: (silent?: boolean, append?: boolean) => Promise<void>;
@@ -109,6 +111,8 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
     following: [],
     friends: [],
     pendingRequests: [],
+    presenceMetadata: {},
+    presenceChannel: null,
     loadingSocial: false,
 
     initUserId: (userId: string) => {
@@ -126,6 +130,8 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
             suggestedUsers: [],
             socialStats: { posts: 0, followers: 0, following: 0 },
             onlineIds: [],
+            presenceMetadata: {},
+            presenceChannel: null,
         });
     },
 
@@ -219,10 +225,16 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
             return now - new Date(u.updated_at).getTime() < timeout;
         };
 
-        const updateUser = <T extends { id: string; updated_at?: string }>(u: T): T => ({
-            ...u,
-            is_online: checkOnline(u),
-        });
+        const updateUser = <T extends { id: string; updated_at?: string }>(u: T): T => {
+            const is_online = checkOnline(u);
+            const metadata = get().presenceMetadata[u.id];
+            return {
+                ...u,
+                is_online,
+                status: metadata?.status || (is_online ? 'available' : undefined),
+                currentRoomId: metadata?.roomId,
+            };
+        };
 
         set({
             friends: friends.map(updateUser),
@@ -253,7 +265,7 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
             return (data as DbPost | null);
         };
 
-        supabase
+        const ch = supabase
             .channel('social-realtime')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, async (payload) => {
                 const { userId: uid } = get();
@@ -396,7 +408,7 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
-                    await supabase.channel('social-realtime').track({ userId, online_at: new Date().toISOString() });
+                    await (ch as any).track({ userId, online_at: new Date().toISOString() });
                 }
             });
 
@@ -406,14 +418,28 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
             .on('presence', { event: 'sync' }, () => {
                 const newState = presenceChannel.presenceState();
                 const activeIds = Object.keys(newState);
-                set({ onlineIds: activeIds });
+                const metadata: Record<string, { status: string; roomId?: string }> = {};
+                
+                activeIds.forEach(id => {
+                    const presence = newState[id] as any;
+                    if (presence?.[0]) {
+                        metadata[id] = {
+                            status: presence[0].status || 'available',
+                            roomId: presence[0].roomId
+                        };
+                    }
+                });
+
+                set({ onlineIds: activeIds, presenceMetadata: metadata });
                 get().recalculatePresence();
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
-                    await presenceChannel.track({ user_id: userId });
+                    await presenceChannel.track({ user_id: userId, status: 'available' });
                 }
             });
+
+        set({ presenceChannel });
 
         // Periodic self-healing tick
         setInterval(() => get().recalculatePresence(), 30_000);
@@ -558,17 +584,25 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         if (error) console.error('Send Message Error:', error.message);
     },
 
-    inviteToStudyRoom: async (friendId: string, roomId: string) => {
-        const { userId } = get();
+    setPresenceMetadata: (status, roomId) => {
+        const { userId, presenceChannel } = get();
         if (!userId) return;
-        const roomName = roomId === 'general' ? 'General Study Room' : roomId;
-        const { error } = await supabase.from('messages').insert({
-            sender_id: userId,
-            receiver_id: friendId,
-            content: `[STUDY_INVITE]${roomId}|Join my study session in ${roomName}! 🚀`,
-            created_at: new Date().toISOString(),
-        });
-        if (error) throw error;
+        
+        if (presenceChannel && presenceChannel.state === 'joined') {
+            presenceChannel.track({ user_id: userId, status, roomId });
+        } else if (presenceChannel) {
+            // If channel exists but not joined, it will track on subscribe success in init
+            console.warn('[Presence] Channel not joined yet, skipping track for status:', status);
+        } else {
+            // Fallback: create and subscribe if missing
+            const ch = supabase.channel('presence-sync');
+            ch.subscribe(async (s) => {
+                if (s === 'SUBSCRIBED') {
+                    await ch.track({ user_id: userId, status, roomId });
+                }
+            });
+            set({ presenceChannel: ch });
+        }
     },
 
     // ── Posts ────────────────────────────────────────────────────────────────

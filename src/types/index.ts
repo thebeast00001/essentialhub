@@ -118,6 +118,8 @@ export interface UserProfile {
     is_online?: boolean;
     updated_at?: string;
     productivity_score?: number;
+    status?: 'available' | 'focusing' | 'busy';
+    currentRoomId?: string;
 }
 
 export interface UserProfileDetail extends UserProfile {
@@ -246,6 +248,8 @@ export interface DbProfile {
     productivity_score?: number;
     updated_at: string;
     created_at: string;
+    status?: 'available' | 'focusing' | 'busy';
+    current_room_id?: string;
 }
 
 /** tasks table row */

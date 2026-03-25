@@ -28,7 +28,7 @@ export default function FriendChatPage() {
     const [isTyping, setIsTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const { friends, sendMessage, inviteToStudyRoom } = useTaskStore();
+    const { friends, sendMessage } = useTaskStore();
 
     // 1. Fetch Friend Info & Messages
     useEffect(() => {
@@ -121,13 +121,25 @@ export default function FriendChatPage() {
                     </div>
                 </div>
                 <div className={styles.headerActions}>
-                    <button 
-                        className={styles.primaryActionBtn} 
-                        onClick={() => inviteToStudyRoom(friendId, 'general').then(() => alert('Invitation sent!'))}
-                    >
-                        <Headphones size={18} />
-                        <span>Invite to Study</span>
-                    </button>
+                    {friend.status === 'focusing' ? (
+                        <button 
+                            className={styles.primaryActionBtn} 
+                            onClick={() => router.push('/study-room?autoJoin=true')}
+                            style={{ background: 'var(--accent-teal)', color: '#000' }}
+                        >
+                            <Headphones size={18} />
+                            <span>Join Session</span>
+                        </button>
+                    ) : (
+                        <button 
+                            className={styles.primaryActionBtn} 
+                            disabled
+                            style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                        >
+                            <Headphones size={18} />
+                            <span>Invite (Inactive)</span>
+                        </button>
+                    )}
                     <div className={styles.actionDivider} />
                     <button className={styles.iconBtn} title="Voice Call"><Phone size={20} /></button>
                     <button className={styles.iconBtn} title="Video Call"><Video size={20} /></button>

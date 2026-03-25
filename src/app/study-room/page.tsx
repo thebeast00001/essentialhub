@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Video, VideoOff, Mic, MicOff, 
@@ -13,16 +13,20 @@ import {
     Home, Bell, Mail, Phone, MoreHorizontal,
     Radio, Activity, Globe, Plus, LogOut,
     UserCheck, SendHorizontal, StopCircle,
-    AlertCircle, RefreshCw, ShieldAlert
+    AlertCircle, RefreshCw, ShieldAlert, Share2, Hash
 } from 'lucide-react';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useSocialStore } from '@/store/useSocialStore';
 import { useAuth } from '@/hooks/useAuth';
+import { useSearchParams } from 'next/navigation';
 import styles from './StudyRoom.module.css';
 import { clsx } from 'clsx';
 
-export default function StudyRoomPage() {
+function StudyRoomContent() {
     const { user } = useAuth();
-    const { friends, addFriendByUsername, fetchFriends, inviteToStudyRoom } = useTaskStore();
+    const { friends, fetchFriends, createPost } = useTaskStore();
+    const { setPresenceMetadata } = useSocialStore();
+    const searchParams = useSearchParams();
     
     // Page State
     const [mounted, setMounted] = useState(false);
@@ -34,7 +38,7 @@ export default function StudyRoomPage() {
     
     // UI State
     const [isChatOpen, setIsChatOpen] = useState(true);
-    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [joinLoading, setJoinLoading] = useState<string | null>(null);
 
     // Chat State
     const [messages, setMessages] = useState<any[]>([]);
@@ -48,10 +52,24 @@ export default function StudyRoomPage() {
     useEffect(() => {
         setMounted(true);
         fetchFriends();
+        
+        // Handle Auto-Join from Invitation
+        if (searchParams?.get('autoJoin') === 'true') {
+            const timer = setTimeout(() => {
+                handleConnectToggle();
+            }, 800); // Give UI a moment to settle
+            return () => {
+                clearTimeout(timer);
+                stopAllStreams();
+            };
+        }
+
         return () => {
             stopAllStreams();
+            setPresenceMetadata('available');
         };
-    }, []);
+    }, [searchParams]);
+
 
     // Robust stream attachment
     useEffect(() => {
@@ -85,12 +103,14 @@ export default function StudyRoomPage() {
         if (isConnected) {
             stopAllStreams();
             setIsConnected(false);
+            setPresenceMetadata('available');
             setIsCameraOff(true);
             setIsSharing(false);
-            setIsInviteOpen(false);
             setMediaError(null);
         } else {
             setIsConnected(true);
+            const rId = searchParams?.get('room') || 'general';
+            setPresenceMetadata('focusing', rId);
             await startCamera();
         }
     };
@@ -193,14 +213,10 @@ export default function StudyRoomPage() {
         setNewMessage('');
     };
 
-    const handleInviteFriend = async (friendId: string, username: string) => {
-        try {
-            await inviteToStudyRoom(friendId, 'Zenith Study Room');
-            alert(`Invitation sent to @${username}!`);
-            setIsInviteOpen(false);
-        } catch (err) {
-            console.error("Invite Error:", err);
-        }
+    const handleJoinFriend = (friend: any) => {
+        if (!friend.currentRoomId) return;
+        setJoinLoading(friend.id);
+        window.location.href = `/study-room?room=${friend.currentRoomId}&autoJoin=true`;
     };
 
     if (!mounted) return null;
@@ -222,15 +238,86 @@ export default function StudyRoomPage() {
                     </div>
                 </div>
                 <div className={styles.headerRight}>
-                    <div className={styles.badge} style={{ opacity: 0.8, cursor: 'pointer' }} onClick={() => setIsInviteOpen(true)}>
-                        <UserPlus size={14} style={{ color: 'var(--accent-orange)' }} />
-                        {friends.filter(f => f.is_online).length} Friends Online
+                    <div className={styles.presenceBadge} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '12px' }}>
+                        <Globe size={14} style={{ color: 'var(--accent-teal)' }} />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{searchParams?.get('room') ? `ROOM: ${searchParams.get('room')}` : 'PUBLIC FOCUS'}</span>
                     </div>
                 </div>
             </header>
 
             {/* Layout */}
             <div className={clsx(styles.mainLayout, !isChatOpen && styles.fullWidthStage)}>
+                {/* Discord-like Sidebar */}
+                <aside className={styles.discordSidebar}>
+                    <div className={styles.sidebarHeader}>
+                        <Radio size={14} className={styles.pulse} />
+                        <span>Active Channels</span>
+                    </div>
+                    
+                    <div className={styles.channelGroup}>
+                        <div className={clsx(styles.channelItem, !searchParams?.get('room') && styles.channelActive)} onClick={() => window.location.href = '/study-room'}>
+                            <Hash size={16} />
+                            <span># public-focus</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.sidebarHeader} style={{ marginTop: 20 }}>
+                        <Users size={14} />
+                        <span>Friend Rooms</span>
+                    </div>
+
+                    <div className={styles.channelScrollArea}>
+                        {friends.filter(f => f.status === 'focusing').length > 0 ? (
+                            friends.filter(f => f.status === 'focusing').map(friend => (
+                                <div 
+                                    key={friend.id} 
+                                    className={clsx(styles.discordChannel, searchParams?.get('room') === friend.currentRoomId && styles.channelActive)}
+                                    onClick={() => handleJoinFriend(friend)}
+                                >
+                                    <div className={styles.discordChannelHeader}>
+                                        <Hash size={14} />
+                                        <span>@{friend.username}'s Room</span>
+                                    </div>
+                                    <div className={styles.userUnderChannel}>
+                                        <div className={styles.avatarMiniWrapper}>
+                                            <img 
+                                                src={friend.avatar_url || `https://ui-avatars.com/api/?name=${friend.username}`} 
+                                                className={styles.avatarMini} 
+                                                alt="" 
+                                            />
+                                            <div className={styles.miniIndicatorLive} />
+                                        </div>
+                                        <span className={styles.miniUsername}>{friend.username}</span>
+                                        {joinLoading === friend.id && <RefreshCw size={10} className={styles.spin} style={{ marginLeft: 'auto' }} />}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className={styles.emptySidebar}>
+                                <Activity size={24} opacity={0.2} />
+                                <p>No friends focusing</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* My Status Card */}
+                    <div className={styles.myPresenceCard}>
+                        <img 
+                            src={user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user?.user_metadata?.username}`} 
+                            className={styles.avatarMini} 
+                            alt="" 
+                        />
+                        <div className={styles.myInfoMini}>
+                            <span className={styles.myMiniUsername}>{user?.user_metadata?.username || 'user'}</span>
+                            <span className={styles.myMiniStatus}>{isConnected ? 'Focusing' : 'Online'}</span>
+                        </div>
+                        <div className={styles.presenceActions}>
+                            <button onClick={toggleMute} className={clsx(isMuted && styles.presenceDanger)}><Mic size={14} /></button>
+                            <button onClick={() => window.location.href = '/settings'}><Settings size={14} /></button>
+                        </div>
+                    </div>
+                </aside>
+
                 {/* Stage */}
                 <div className={clsx(styles.videoStage, isSharing && styles.sharingOuter, mediaError && styles.errorStage)}>
                     {mediaError ? (
@@ -254,9 +341,9 @@ export default function StudyRoomPage() {
                                     />
                                 ) : <Zap size={48} color="var(--accent-orange)" opacity={0.6} />}
                             </div>
-                            <div className={styles.statusText}>
-                                <h2>{isConnected ? `u/${user?.user_metadata?.username || 'agent'}` : 'Start Focus Session'}</h2>
-                                <p>{isConnected ? 'Camera is currently off' : 'Click to connect your camera and start'}</p>
+                        <div className={styles.statusText}>
+                                <h2>{isConnected ? `u/${user?.user_metadata?.username || 'agent'}` : 'Focus Lounge'}</h2>
+                                <p>{isConnected ? 'Camera is currently off' : 'Select an active channel or start your own'}</p>
                             </div>
                         </div>
                     ) : (
@@ -323,57 +410,6 @@ export default function StudyRoomPage() {
                             {isSharing ? <StopCircle size={22} /> : <Monitor size={22} />}
                         </button>
 
-                        <div style={{ position: 'relative' }}>
-                            <button 
-                                className={clsx(styles.deckIconButton, isInviteOpen && styles.activeIcon)}
-                                onClick={() => setIsInviteOpen(!isInviteOpen)}
-                                title="Invite Friends"
-                            >
-                                <UserPlus size={22} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isInviteOpen && (
-                                    <motion.div 
-                                        className={styles.invitePopover}
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    >
-                                        <div className={styles.inviteHeader}>Quick Invite</div>
-                                        <div style={{ maxHeight: 200, overflowY: 'auto' }}>
-                                            {friends.length > 0 ? friends.map(friend => (
-                                                <div 
-                                                    key={friend.id} 
-                                                    className={styles.friendItem}
-                                                    onClick={() => handleInviteFriend(friend.id, friend.username)}
-                                                >
-                                                    <div className={styles.friendInfo}>
-                                                        <img 
-                                                            src={friend.avatar_url || `https://ui-avatars.com/api/?name=${friend.username}&background=333&color=fff`} 
-                                                            className={styles.avatarMini} 
-                                                            alt="" 
-                                                        />
-                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>@{friend.username}</span>
-                                                            <span style={{ fontSize: '0.7rem', color: friend.is_online ? '#10b981' : '#666' }}>
-                                                                {friend.is_online ? 'Online' : 'Offline'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <SendHorizontal size={14} />
-                                                </div>
-                                            )) : (
-                                                <div style={{ padding: 20, textAlign: 'center', fontSize: '0.8rem', opacity: 0.5 }}>
-                                                    Connect with friends first.
-                                                </div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
                         <button 
                             className={clsx(styles.deckIconButton, isChatOpen && styles.activeIcon)}
                             onClick={() => setIsChatOpen(!isChatOpen)}
@@ -430,5 +466,13 @@ export default function StudyRoomPage() {
                 </AnimatePresence>
             </div>
         </div>
+    );
+}
+
+export default function StudyRoomPage() {
+    return (
+        <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Establishing pulse connection...</div>}>
+            <StudyRoomContent />
+        </Suspense>
     );
 }

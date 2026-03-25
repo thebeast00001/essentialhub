@@ -210,7 +210,7 @@ interface TaskState {
     addFriendByUsername: (username: string) => Promise<ActionResult>;
     acceptFriendRequest: (requestId: string) => Promise<void>;
     sendMessage: (friendId: string, message: string) => Promise<void>;
-    inviteToStudyRoom: (friendId: string, roomId: string) => Promise<void>;
+    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy', roomId?: string) => void;
     fetchPosts: (silent?: boolean) => Promise<void>;
     createPost: (content: string, image_url?: string) => Promise<void>;
     votePost: (postId: string, voteType: number) => Promise<void>;
@@ -969,7 +969,7 @@ export const useTaskStore = create<TaskState>()(
                 addFriendByUsername: (username: string) => getSocial().addFriendByUsername(username),
                 acceptFriendRequest: (id: string) => getSocial().acceptFriendRequest(id),
                 sendMessage: (friendId: string, message: string) => getSocial().sendMessage(friendId, message),
-                inviteToStudyRoom: (friendId: string, roomId: string) => getSocial().inviteToStudyRoom(friendId, roomId),
+                setPresenceMetadata: (status, roomId) => getSocial().setPresenceMetadata(status, roomId),
                 fetchPosts: (silent) => getSocial().fetchPosts(silent),
                 createPost: (content: string, image_url) => getSocial().createPost(content, image_url),
                 votePost: (postId, voteType) => getSocial().votePost(postId, voteType),
@@ -993,12 +993,14 @@ export const useTaskStore = create<TaskState>()(
         {
             name: 'essential-command-storage',
             partialize: (state) => ({
+                userId: state.userId,
                 activities: state.activities,
                 productivityScore: state.productivityScore,
                 focusTimeToday: state.focusTimeToday,
                 timerSeconds: state.timerSeconds,
                 initialTimerSeconds: state.initialTimerSeconds,
             }),
+
         }
     )
 );

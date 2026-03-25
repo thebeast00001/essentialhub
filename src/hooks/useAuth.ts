@@ -2,101 +2,120 @@
 
 import { useUser, useAuth as useClerkAuth, useClerk } from "@clerk/nextjs";
 import { useTaskStore } from '@/store/useTaskStore';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 export const useAuth = () => {
     const { user: clerkUser, isLoaded, isSignedIn } = useUser();
-    const { signOut: clerkSignOut } = useClerkAuth();
     const { signOut: globalSignOut } = useClerk();
     const { setUserId, syncProfile } = useTaskStore();
+    
+    // We maintain a local "user" state for stability during transitions
     const [user, setUser] = useState<any>(null);
-    const lastSyncUserId = useRef<string | null>(null);
+    const lastProcessedUserId = useRef<string | null>(null);
+
+    // Derived user object for immediate consistency with Clerk
+    const normalizedUser = useMemo(() => {
+        if (!clerkUser) return null;
+        
+        const username = clerkUser.username || clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 'operator';
+        
+        return {
+            id: clerkUser.id,
+            email: clerkUser.primaryEmailAddress?.emailAddress,
+            user_metadata: {
+                full_name: clerkUser.fullName || username || 'Zenith Agent',
+                username: username,
+                avatar_url: clerkUser.imageUrl
+            },
+            created_at: clerkUser.createdAt
+        };
+    }, [clerkUser]);
 
     useEffect(() => {
-        const initializeUser = async () => {
-            if (isLoaded && isSignedIn && clerkUser) {
-                let username = clerkUser.username;
-                
-                // If no username, generate one automatically (Reddit-style)
-                if (!username) {
-                    const { generateRandomUsername } = await import('@/utils/usernameGenerator');
-                    const newUsername = generateRandomUsername();
-                    try {
-                        await clerkUser.update({
-                            username: newUsername
-                        });
-                        // update() might trigger a reference change for clerkUser, causing effect to re-run
-                        username = newUsername;
-                    } catch (err) {
-                        console.error("Failed to auto-assign username:", err);
-                        username = clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 'operator';
-                    }
-                }
+        if (!isLoaded) return;
 
-                // Normalization
-                const normalizedUser = {
-                    id: clerkUser.id,
-                    email: clerkUser.primaryEmailAddress?.emailAddress,
-                    user_metadata: {
-                        full_name: clerkUser.fullName || username || 'Zenith Agent',
-                        username: username,
-                        avatar_url: clerkUser.imageUrl
-                    }
-                };
-                
-                setUser(normalizedUser);
-                setUserId(clerkUser.id);
-                
-                // Optimized Profile Synchronization
-                // Avoid redundant syncs if the essential data hasn't changed or we just synced this ID
-                if (lastSyncUserId.current !== clerkUser.id) {
-                    const profileUpdate = {
-                        email: normalizedUser.email || '',
-                        username: normalizedUser.user_metadata.username,
-                        full_name: normalizedUser.user_metadata.full_name,
-                        avatar_url: normalizedUser.user_metadata.avatar_url
+        if (isSignedIn && clerkUser) {
+            // Only run initialization if the user ID has actually changed
+            if (lastProcessedUserId.current !== clerkUser.id) {
+                const initialize = async () => {
+                    const currentNormalized = {
+                        id: clerkUser.id,
+                        email: clerkUser.primaryEmailAddress?.emailAddress,
+                        user_metadata: {
+                            full_name: clerkUser.fullName || clerkUser.username || 'Zenith Agent',
+                            username: clerkUser.username || clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0] || 'operator',
+                            avatar_url: clerkUser.imageUrl
+                        }
                     };
 
+                    // 1. Update the stores immediately
+                    setUserId(clerkUser.id);
+                    setUser(currentNormalized);
+                    lastProcessedUserId.current = clerkUser.id;
+
+                    // 2. Handle missing usernames (Reddit-style auto-assign)
+                    if (!clerkUser.username) {
+                        try {
+                            const { generateRandomUsername } = await import('@/utils/usernameGenerator');
+                            const newUsername = generateRandomUsername();
+                            await clerkUser.update({ username: newUsername });
+                            // This might trigger a clerkUser change and re-run this effect
+                        } catch (err) {
+                            console.error("Failed to auto-assign username:", err);
+                        }
+                    }
+
+                    // 3. Sync to Database
+                    const profileUpdate = {
+                        email: currentNormalized.email || '',
+                        username: currentNormalized.user_metadata.username,
+                        full_name: currentNormalized.user_metadata.full_name,
+                        avatar_url: currentNormalized.user_metadata.avatar_url
+                    };
                     await syncProfile(profileUpdate);
-                    lastSyncUserId.current = clerkUser.id;
-                }
-            } else if (isLoaded && !isSignedIn) {
+                };
+                
+                initialize();
+            }
+        } else if (isLoaded && !isSignedIn) {
+            // Only clear if we were previously signed in
+            if (lastProcessedUserId.current !== null) {
                 setUser(null);
                 setUserId('');
-                lastSyncUserId.current = null;
+                lastProcessedUserId.current = null;
             }
-        };
+        }
+    }, [clerkUser, isLoaded, isSignedIn, setUserId, syncProfile]);
 
-        initializeUser();
+    // Presence Heartbeat
+    useEffect(() => {
+        if (!isSignedIn || !clerkUser) return;
 
-        // Online Presence Heartbeat
         const heartbeat = setInterval(() => {
-            if (isSignedIn && clerkUser) {
-                useTaskStore.getState().updatePresence();
-            }
+            useTaskStore.getState().updatePresence();
         }, 60000);
 
         return () => clearInterval(heartbeat);
-    }, [clerkUser?.id, isLoaded, isSignedIn, setUserId, syncProfile]);
+    }, [clerkUser?.id, isSignedIn]);
 
     const signOut = async () => {
+        // Clear local state first for instant feedback
+        setUser(null);
+        setUserId('');
+        lastProcessedUserId.current = null;
+        
         await globalSignOut();
+        // Use router instead of href for smoother SPA transition if possible, 
+        // but Clerk signOut often works better with full reload
         window.location.href = "/sign-in";
     };
 
     return { 
-        user: clerkUser ? {
-            id: clerkUser.id,
-            email: clerkUser.primaryEmailAddress?.emailAddress,
-            user_metadata: {
-                full_name: clerkUser.fullName || clerkUser.username || 'Zenith Agent',
-                username: clerkUser.username,
-                avatar_url: clerkUser.imageUrl
-            }
-        } : user, 
+        user: normalizedUser || user, 
         loading: !isLoaded, 
         signOut, 
         isAuthenticated: isSignedIn 
     };
 };
+
 
