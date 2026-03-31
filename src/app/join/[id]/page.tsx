@@ -68,7 +68,7 @@ export default function JoinPage() {
                     <div className={styles.benefits}>
                         <div className={styles.benefit}>
                             <Zap size={18} />
-                            <span>Real-time co-working rooms</span>
+                            <span>AI-powered productivity insights</span>
                         </div>
                         <div className={styles.benefit}>
                             <Users size={18} />

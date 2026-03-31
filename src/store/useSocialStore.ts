@@ -38,7 +38,7 @@ interface SocialState {
     following: UserProfile[];
     friends: Friend[];
     pendingRequests: PendingFriendRequest[];
-    presenceMetadata: Record<string, { status: string; roomId?: string }>; // Map of userId -> status info
+    presenceMetadata: Record<string, { status: string }>; // Map of userId -> status info
     presenceChannel: any | null;
     loadingSocial: boolean;
 
@@ -57,7 +57,7 @@ interface SocialState {
     addFriendByUsername: (username: string) => Promise<ActionResult>;
     acceptFriendRequest: (requestId: string) => Promise<void>;
     sendMessage: (friendId: string, message: string) => Promise<void>;
-    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy', roomId?: string) => void;
+    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy') => void;
 
     // Posts & Comments
     fetchPosts: (silent?: boolean, append?: boolean) => Promise<void>;
@@ -232,7 +232,6 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                 ...u,
                 is_online,
                 status: metadata?.status || (is_online ? 'available' : undefined),
-                currentRoomId: metadata?.roomId,
             };
         };
 
@@ -418,7 +417,7 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         const rebuildPresence = () => {
             const newState = presenceChannel.presenceState() as Record<string, any[]>;
             const onlineIds: string[] = [];
-            const metadata: Record<string, { status: string; roomId?: string }> = {};
+            const metadata: Record<string, { status: string }> = {};
 
             Object.values(newState).forEach(presences => {
                 presences.forEach((p: any) => {
@@ -429,7 +428,6 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                     if (!metadata[uid] || p.status === 'focusing') {
                         metadata[uid] = {
                             status: p.status || 'available',
-                            roomId: p.roomId,
                         };
                     }
                 });
@@ -490,7 +488,6 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
                     updated_at: profile.updated_at,
                     is_online: meta ? true : isOnlineByTimestamp(profile.updated_at, 300_000),
                     status: meta?.status as any,
-                    currentRoomId: meta?.roomId,
                 };
             });
             set({ friends: mappedFriends });
@@ -598,11 +595,11 @@ export const useSocialStore = create<SocialState>()((set, get) => ({
         if (error) console.error('Send Message Error:', error.message);
     },
 
-    setPresenceMetadata: (status, roomId) => {
+    setPresenceMetadata: (status) => {
         const { userId, presenceChannel } = get();
         if (!userId) return;
         
-        const payload = { user_id: userId, status, roomId };
+        const payload = { user_id: userId, status };
 
         if (presenceChannel && presenceChannel.state === 'joined') {
             presenceChannel.track(payload);

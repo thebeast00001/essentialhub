@@ -39,7 +39,6 @@ const generalItems = [
 ];
 
 const toolItems = [
-    { icon: Zap, label: 'Study Room', href: '/study-room' },
     { icon: Flame, label: 'Habits', href: '/habits' },
     { icon: BarChart3, label: 'Analytics', href: '/insights' },
     { icon: Timer, label: 'Timer', href: '/focus' },

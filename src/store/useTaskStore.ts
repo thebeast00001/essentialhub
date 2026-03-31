@@ -210,7 +210,7 @@ interface TaskState {
     addFriendByUsername: (username: string) => Promise<ActionResult>;
     acceptFriendRequest: (requestId: string) => Promise<void>;
     sendMessage: (friendId: string, message: string) => Promise<void>;
-    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy', roomId?: string) => void;
+    setPresenceMetadata: (status: 'available' | 'focusing' | 'busy') => void;
     fetchPosts: (silent?: boolean) => Promise<void>;
     createPost: (content: string, image_url?: string) => Promise<void>;
     votePost: (postId: string, voteType: number) => Promise<void>;
@@ -969,7 +969,7 @@ export const useTaskStore = create<TaskState>()(
                 addFriendByUsername: (username: string) => getSocial().addFriendByUsername(username),
                 acceptFriendRequest: (id: string) => getSocial().acceptFriendRequest(id),
                 sendMessage: (friendId: string, message: string) => getSocial().sendMessage(friendId, message),
-                setPresenceMetadata: (status, roomId) => getSocial().setPresenceMetadata(status, roomId),
+                setPresenceMetadata: (status) => getSocial().setPresenceMetadata(status),
                 fetchPosts: (silent) => getSocial().fetchPosts(silent),
                 createPost: (content: string, image_url) => getSocial().createPost(content, image_url),
                 votePost: (postId, voteType) => getSocial().votePost(postId, voteType),

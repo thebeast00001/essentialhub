@@ -102,7 +102,6 @@ export interface ActivityMetadata {
     bonus?: number;
     updates?: Partial<Task>;
     guardianMode?: boolean;
-    roomId?: string;
     [key: string]: unknown; // Allow extra keys without losing type safety on known ones
 }
 
@@ -119,7 +118,6 @@ export interface UserProfile {
     updated_at?: string;
     productivity_score?: number;
     status?: 'available' | 'focusing' | 'busy';
-    currentRoomId?: string;
 }
 
 export interface UserProfileDetail extends UserProfile {
@@ -249,7 +247,6 @@ export interface DbProfile {
     updated_at: string;
     created_at: string;
     status?: 'available' | 'focusing' | 'busy';
-    current_room_id?: string;
 }
 
 /** tasks table row */

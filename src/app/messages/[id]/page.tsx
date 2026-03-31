@@ -121,24 +121,22 @@ export default function FriendChatPage() {
                     </div>
                 </div>
                 <div className={styles.headerActions}>
-                    {friend.status === 'focusing' ? (
-                        <button 
+                    {friend.is_online ? (
+                        <div 
                             className={styles.primaryActionBtn} 
-                            onClick={() => router.push('/study-room?autoJoin=true')}
-                            style={{ background: 'var(--accent-teal)', color: '#000' }}
+                            style={{ background: 'var(--accent-teal)', color: '#000', cursor: 'default' }}
                         >
-                            <Headphones size={18} />
-                            <span>Join Session</span>
-                        </button>
+                            <ShieldCheck size={18} />
+                            <span>Connected</span>
+                        </div>
                     ) : (
-                        <button 
+                        <div 
                             className={styles.primaryActionBtn} 
-                            disabled
                             style={{ opacity: 0.5, cursor: 'not-allowed' }}
                         >
-                            <Headphones size={18} />
-                            <span>Invite (Inactive)</span>
-                        </button>
+                            <ShieldCheck size={18} />
+                            <span>Offline</span>
+                        </div>
                     )}
                     <div className={styles.actionDivider} />
                     <button className={styles.iconBtn} title="Voice Call"><Phone size={20} /></button>
@@ -158,14 +156,7 @@ export default function FriendChatPage() {
 
                 {messages.map((msg, idx) => {
                     const isMe = msg.sender_id === user?.id;
-                    const isInvite = msg.content?.startsWith('[STUDY_INVITE]');
-                    let actionUrl = '';
                     let displayContent = msg.content;
-                    if (isInvite) {
-                        const parts = msg.content.replace('[STUDY_INVITE]', '').split('|');
-                        actionUrl = `/study-room?room=${parts[0]}`;
-                        displayContent = parts[1];
-                    }
 
                     return (
                         <motion.div 
@@ -176,24 +167,7 @@ export default function FriendChatPage() {
                         >
                             {!isMe && <img src={friend.avatar_url} className={styles.smallAvatar} />}
                             <div className={styles.bubble}>
-                                {isInvite ? (
-                                    <div className={styles.inviteCard}>
-                                        <div className={styles.inviteCardHeader}>
-                                            <Headphones size={16} className={styles.inviteIcon} />
-                                            <span>STUDY INVITATION</span>
-                                        </div>
-                                        <p>{displayContent}</p>
-                                        <button 
-                                            className={styles.joinInviteBtn}
-                                            onClick={() => router.push(actionUrl)}
-                                        >
-                                            <ExternalLink size={14} />
-                                            Join Room
-                                        </button>
-                                    </div>
-                                ) : (
                                     <p>{msg.content}</p>
-                                )}
                                 <div className={styles.msgMeta}>
                                     <span>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     {isMe && <CheckCheck size={14} className={styles.readIcon} />}
