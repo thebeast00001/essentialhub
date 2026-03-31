@@ -605,6 +605,15 @@
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .clockWrapper {
+        transform: scale(0.8);
+    }
+    .radioClockWrapper {
+        transform: scale(0.9);
+    }
+}
+
 @media (max-width: 900px) {
     .layout {
         flex-direction: column;
@@ -623,20 +632,49 @@
     }
 }
 
+@media (max-width: 768px) {
+    .shell {
+        min-height: 100dvh;
+        padding: 20px;
+    }
+
+    .durationSlider {
+        width: 200px;
+    }
+
+    .styleSwitcher {
+        top: auto;
+        bottom: 100px;
+        left: 0;
+        right: 0;
+        justify-content: center;
+    }
+
+    .clockWrapper {
+        transform: scale(0.65);
+    }
+
+    .radioClockWrapper {
+        transform: scale(0.75);
+    }
+}
+
 @media (max-width: 480px) {
     .clockWrapper, .radioClockWrapper {
-        transform: scale(0.6) !important;
-        margin-top: -160px !important;
-        margin-bottom: -160px !important;
+        transform: scale(0.55) !important;
+        margin-top: -180px !important;
+        margin-bottom: -180px !important;
     }
     
     .shell {
-        padding: 16px;
+        padding: 12px;
     }
     
     .headerStats {
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
         margin-bottom: 20px;
     }
     

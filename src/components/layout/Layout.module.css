@@ -95,6 +95,7 @@
 
     .main {
         padding-top: 72px; /* Fixed header offset */
+        padding-bottom: 80px; /* Space for BottomNav */
     }
 }
 

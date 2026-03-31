@@ -215,7 +215,43 @@
 }
 
 @media (max-width: 600px) {
+    .modal {
+        padding: 24px 16px;
+    }
+    
+    .modalHeader {
+        margin-bottom: 24px;
+    }
+
+    .modalHeader h2 {
+        font-size: 1.25rem;
+    }
+
     .metaGrid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .priorityGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer {
+        flex-direction: column-reverse;
+        gap: 12px;
+    }
+
+    .footer button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 400px) {
+    .titleInput {
+        font-size: 1.1rem;
+    }
+    
+    .metaInput {
+        font-size: 0.85rem;
     }
 }

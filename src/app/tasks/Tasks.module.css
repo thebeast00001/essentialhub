@@ -434,8 +434,20 @@
         flex-direction: column;
     }
     .detailsPane {
-        width: 100%;
-        min-height: 400px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2000;
+        border-radius: 0;
+        display: none;
+    }
+    
+    .detailsPane.mobileActive {
+        display: flex;
     }
 }
 
@@ -640,6 +652,26 @@
     border-radius: 12px;
     border: 1px solid rgba(99,102,241,0.2);
     z-index: 0;
+}
+/* Mobile back button */
+.backBtn {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    width: fit-content;
+}
+
+@media (max-width: 1024px) {
+    .backBtn {
+        display: flex;
+    }
 }
 
 /* Empty task list state */

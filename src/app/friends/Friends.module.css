@@ -19,16 +19,17 @@
 @media (max-width: 900px) {
     .layout {
         grid-template-columns: 1fr;
-        padding: 24px 16px;
+        padding: 16px;
+        gap: 16px;
     }
-    .rightCol { display: none; }
+    .leftCol, .rightCol { display: none; }
     
     .heroTitle {
         font-size: 2rem;
     }
     
     .pageHero {
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
 
     .composerHeader {
@@ -46,6 +47,43 @@
     .mediaBtn {
         padding: 6px 12px;
         font-size: 0.75rem;
+    }
+
+    .storyContainer {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        max-width: none;
+    }
+
+    .socialModal {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .storyCreatorModal {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .heroTitle {
+        font-size: 1.75rem;
+    }
+    .heroSub {
+        font-size: 0.85rem;
+    }
+    .auraRing {
+        width: 60px;
+        height: 60px;
+    }
+    .composerInputWrapper textarea {
+        font-size: 1rem;
     }
 }
 

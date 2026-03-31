@@ -16,6 +16,69 @@
 @media (max-width: 900px) {
     .layout {
         grid-template-columns: 1fr;
+        padding: 20px 16px;
+        gap: 24px;
+    }
+    
+    .sidebar {
+        order: 2;
+    }
+    
+    .mainContent {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .profileInfo {
+        padding: 0 20px 24px;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .largeAvatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 28px;
+    }
+    
+    .details h1 {
+        font-size: 1.5rem;
+        justify-content: center;
+    }
+    
+    .details p {
+        font-size: 1rem;
+    }
+
+    .cover {
+        height: 120px;
+    }
+
+    .tabs {
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 0;
+        margin-bottom: 24px;
+    }
+
+    .tab {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .statsGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .postCard {
+        padding: 16px;
+    }
+    
+    .postBody p {
+        font-size: 1rem;
     }
 }
 

@@ -22,76 +22,136 @@
     flex-shrink: 0;
 }
 
-.sidebarClosed {
-    width: 0;
-    overflow: hidden;
-    border-right: none;
-}
-
 @media (max-width: 1024px) {
-    .sidebar { width: 0; border-right: none; }
-    .sidebarContent { display: none; }
+    .sidebar { 
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+    
+    .sidebarClosed {
+        transform: translateX(-100%);
+    }
+    
     .logoSection { display: none; }
 }
 
 @media (max-width: 768px) {
     .mainHeader {
         height: auto;
+        padding: 8px;
         flex-direction: column;
-        padding: 12px;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 8px;
     }
     
-    .headerLeft, .headerRight {
+    .headerLeft {
         width: 100%;
         justify-content: space-between;
     }
     
-    .searchBox {
-        display: none;
-    }
-    
-    .dateRange {
-        font-size: 1.1rem;
-    }
-    
-    .weekDayHeader {
-        padding: 8px 0;
-    }
-    
-    .dayNumber {
-        width: 32px;
-        height: 32px;
-        font-size: 1rem;
-    }
-    
-    .timeColumnSpacer, .timeLines {
-        width: 48px;
-    }
-    
-    .rowLine {
-        left: 48px;
+    .headerRight {
+        width: 100%;
+        justify-content: flex-end;
     }
 
-    .yearView {
-        grid-template-columns: repeat(2, 1fr);
-        padding: 16px;
-        gap: 20px;
+    .dateRange {
+        font-size: 1.1rem;
+        margin-left: 0;
+    }
+
+    .navArrows {
+        margin: 0;
+    }
+
+    .todayBtn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Week View Adjustments */
+    .timeColumnSpacer, .timeLines {
+        width: 45px;
+    }
+    
+    .timeLabel {
+        font-size: 0.6rem;
+    }
+
+    .weekDayHeader {
+        padding: 4px 0;
+    }
+
+    .dayName {
+        font-size: 0.5rem;
+    }
+
+    .dayNumber {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+    }
+
+    .eventTitle {
+        font-size: 0.7rem;
+    }
+
+    .eventTab {
+        font-size: 0.55rem;
+        padding: 2px 6px;
+    }
+
+    /* Month View Adjustments */
+    .monthDayCell {
+        padding: 2px;
+    }
+
+    .dayNum {
+        font-size: 0.65rem;
+        width: 18px;
+        height: 18px;
+    }
+
+    .monthTask {
+        padding: 2px;
+        font-size: 0.6rem;
+    }
+
+    .monthTask span {
+        display: none; /* Hide text on small screens, show dots/bullets only if too crowded */
+    }
+
+    .monthTask::after {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: currentColor;
     }
 }
 
 @media (max-width: 480px) {
-    .yearView {
-        grid-template-columns: 1fr;
+    .weekView {
+        /* On very small screens, 7 columns is impossible. 
+           We can make the weekView scrollable horizontally. */
+        overflow-x: auto;
     }
     
+    .weekHeader, .weekGrid {
+        min-width: 600px; /* Force minimum width to allow scrolling */
+    }
+
     .headerActions {
-        gap: 8px;
+        gap: 4px;
     }
-    
+
     .switcherBtn {
-        padding: 6px 8px !important;
-        font-size: 0.8rem !important;
+        padding: 5px 8px !important;
+        font-size: 0.75rem !important;
     }
 }
 

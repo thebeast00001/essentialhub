@@ -8,6 +8,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 export const metadata: Metadata = {
   title: "ESSENTIAL | Your Productivity Command Center",
   description: "Master your time with ESSENTIAL - the high-performance task manager and productivity suite.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({

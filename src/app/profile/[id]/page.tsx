@@ -161,7 +161,7 @@ export default function UserProfilePage() {
     return (
         <div className={styles.container}>
             <div className={styles.layout}>
-                <main>
+                <main className={styles.mainContent}>
                     <Link href="/friends" className={styles.backBtn}>
                         <ArrowLeft size={20} /> Back to Circle
                     </Link>

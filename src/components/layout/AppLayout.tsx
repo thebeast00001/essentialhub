@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Sidebar } from './Sidebar';
+import { MobileNav } from './MobileNav';
 import { CommandPalette } from '../ui/CommandPalette';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -83,6 +84,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     {children}
                 </motion.div>
             </main>
+            {!isAuthRoute && <MobileNav />}
         </div>
     );
 };

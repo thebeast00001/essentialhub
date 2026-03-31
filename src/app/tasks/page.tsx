@@ -15,7 +15,8 @@ import {
     CalendarClock,
     CalendarDays,
     CalendarRange,
-    LayoutList
+    LayoutList,
+    ChevronLeft
 } from 'lucide-react';
 import { useTaskStore, Task, Priority } from '@/store/useTaskStore';
 import { Badge } from '@/components/ui/UIComponents';
@@ -318,7 +319,11 @@ export default function TasksPage() {
                 </motion.div>
 
                 {/* ─── Right Pane: Focus Details ─── */}
-                <motion.div className={styles.detailsPane} variants={itemVariants}>
+                <motion.div className={clsx(styles.detailsPane, selectedTaskId && styles.mobileActive)} variants={itemVariants}>
+                    <button className={styles.backBtn} onClick={() => setSelectedTaskId(null)}>
+                        <ChevronLeft size={18} />
+                        Back to List
+                    </button>
                     <div className={styles.autoPilotSection}>
                         <div className={styles.autoPilotHeader}>
                             <div className={styles.autoPilotTitle}>
